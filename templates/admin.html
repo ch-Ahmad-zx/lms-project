@@ -3,15 +3,27 @@
 <head>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Admin Dashboard</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f64f59 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
 </head>
-<body class="p-5 bg-light">
-    <div class="container bg-white p-4 shadow rounded">
+<body class="p-5">
+    <div class="container card p-4">
         <div class="d-flex justify-content-between align-items-center">
             <h2>User Management Portal</h2>
             <a href="/logout" class="btn btn-outline-danger btn-sm">Logout Admin</a>
         </div>
         <hr>
-
         <table class="table table-hover mt-4">
             <thead class="table-dark">
                 <tr>
@@ -25,18 +37,17 @@
             <tbody>
                 {% for user in users %}
                 <tr>
-                    <td>{{ user['id'] }}</td>
-                    <td>{{ user['username'] }}</td>
-                    <td>{{ user['email'] }}</td>
-                    <td><span class="badge bg-info text-dark">{{ user['role'] }}</span></td>
+                    <td>{{ user[0] }}</td>
+                    <td>{{ user[1] }}</td>
+                    <td>{{ user[2] }}</td>
+                    <td><span class="badge bg-info text-dark">{{ user[4] }}</span></td>
                     <td>
-                        <a href="/delete/{{ user['id'] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')">Delete</a>
+                        <a href="/delete/{{ user[0] }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        
         <div class="mt-4">
             <a href="/" class="btn btn-primary">Add New User</a>
         </div>

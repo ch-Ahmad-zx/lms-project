@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm border-0 mx-auto" style="max-width: 450px;"> 
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
+            <h5 class="fw-bold"><i class="bi bi-shield-lock-fill text-success"></i> Secure Payment</h5>
+            <p class="text-muted small">Enter your card details to activate your plan</p>
+        </div>
+        
+        <div class="card-body px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded">
+                <span class="small fw-bold">Selected Plan:</span>
+                <span class="badge bg-primary text-white">{{ session.get('selected_plan') }}</span>
+            </div>
+
+            <form action="/process_payment" method="POST">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Card Number</label>
+                    <div class="input-group">
+                        <input type="text" id="cardNumber" name="card_number" class="form-control" 
+                               placeholder="0000 - 0000 - 0000 - 0000" maxlength="25" required>
+                        <span class="input-group-text bg-white" id="cardLogo">
+                            <i class="bi bi-credit-card"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-7 mb-3">
+                        <label class="form-label small fw-bold">Expiry</label>
+                       <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" pattern="(0[1-9]|1[0-2])\/([0-9]{2})" title="Expiry must be in MM/YY format" required>
+                    </div>
+                    <div class="col-5 mb-3">
+                        <label class="form-label small fw-bold">CVV</label>
+                       <input type="number" name="cvv" class="form-control" placeholder="***" min="100" max="999" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">
+                    Pay Now
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal_Visa_Mastercard_Banner.png" width="160" style="filter: grayscale(100%); opacity: 0.6;">
+            </div>
+        </div>
+    </div>
+    </div>
+
+<script>
+    const cardInput = document.getElementById('cardNumber');
+    const cardLogo = document.getElementById('cardLogo');
+
+    cardInput.addEventListener('input', function (e) {
+        let value = e.target.value.replace(/\D/g, ''); 
+        let formattedValue = value.match(/.{1,4}/g)?.join(' - ') || '';
+        e.target.value = formattedValue;
+
+        // Visa/Master Detection
+        if (value.startsWith('4')) {
+            cardLogo.innerHTML = '<span class="text-primary fw-bold" style="font-size: 10px;">VISA</span>';
+        } else if (value.startsWith('5')) {
+            cardLogo.innerHTML = '<span class="text-danger fw-bold" style="font-size: 10px;">MASTER</span>';
+        } else {
+            cardLogo.innerHTML = '<i class="bi bi-credit-card"></i>';
+        }
+        document.getElementById('expiry').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0,2) + '/' + value.substring(2);
+    }
+    e.target.value = value;
+});
+    });
+</script>
+
+{% endblock %}

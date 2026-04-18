@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow mx-auto text-center p-4" style="max-width: 600px;">
+    <h2 class="text-success">Registration Successful!</h2>
+    <hr>
+    <h4>Welcome, {{ name }}</h4>
+    <div class="p-3 bg-dark text-warning my-3 rounded">
+        <strong>License Key:</strong> {{ key }}
+    </div>
+    <p><strong>Expires:</strong> {{ expiry }}</p>
+    
+    <div class="d-grid gap-2">
+        <p class="license-key" style="font-size: 20px; margin: 20px 0;">
+</p>
+        <button onclick="window.print()" class="btn btn-primary">Download/Print License</button>
+        <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+{% endblock %}

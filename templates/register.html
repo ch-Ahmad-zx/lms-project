@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow p-4">
+            <h2 class="text-center mb-4">License Management System</h2>
+            <hr>
+            <form action="/register" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Ahmad Khan" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="name@example.com" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+               <div class="input-group">
+    <input type="password" id="regPassword" name="password" class="form-control" required minlength="6" pattern="(?=.*\d)(?=.*[a-zA-Z]).{6,}" title="Password must be at least 6 characters and contain 1 number">
+    <span class="input-group-text" onclick="togglePass('regPassword')" style="cursor:pointer;">
+        <i class="bi bi-eye" id="regPasswordIcon"></i>
+    </span>
+</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Select Subscription Plan</label>
+                   <select name="plan" class="form-select">
+    <option value="Basic">Basic ($10 - 1 Month)</option>
+    <option value="Professional">Professional ($25 - 3 Months)</option>
+    <option value="Enterprise">Enterprise ($90 - 1 Year)</option>
+    <option value="Ultimate">Ultimate ($250 - 3 Years)</option>
+</select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Register & Generate License</button>
+                <script>
+function togglePass(id) {
+    const input = document.getElementById(id);
+    const icon = input.nextElementSibling.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    }
+}
+</script>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

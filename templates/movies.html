@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-danger">Ahmad's Premium Movies</h2>
+        <p class="text-muted">High-quality streaming for licensed users only.</p>
+    </div>
+
+    {% if is_unlocked %}
+        <div class="card bg-black border-0 shadow-lg p-3">
+            <div class="ratio ratio-16x9">
+               <div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/KYz2wyBy3kc title="Toy Story" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Toy Story</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/TbQm5doF_Uc" title="Frozen" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Frozen</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/LKFuXETZUsI" title="Moana" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Moana</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/jWM0ct-OLsM" title="Zootopia" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Zootopia</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/Rvr68u6k5sI" title="Coco" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Coco</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/4sj1MT05lAA" title="The Lion King" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 The Lion King</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/2zLKoscMHbQ" title="Finding Nemo" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Finding Nemo</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/pkqzFUhGPJg" title="Up" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Up</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/W37DlG1i61s" title="Shrek" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Shrek</p>
+    </div>
+
+    <div class="col-md-6">
+        <div class="ratio ratio-16x9">
+            <iframe src="https://www.youtube.com/embed/CaimKeDcudo" title="Encanto" allowfullscreen></iframe>
+        </div>
+        <p class="text-white mt-2 fw-bold">🎬 Encanto</p>
+    </div>
+
+</div>
+            </div>
+            <div class="mt-3 text-white">
+                <h4>Now Playing: Project Alpha (Premium Content)</h4>
+                <span class="badge bg-success">License Verified ✔️</span>
+            </div>
+        </div>
+    {% else %}
+        <div class="card bg-dark text-white mx-auto shadow-lg" style="max-width: 550px; border-radius: 15px;">
+            <div class="card-body p-5 text-center">
+                <i class="bi bi-lock-fill text-danger" style="font-size: 60px;"></i>
+                <h3 class="mt-3">Content Locked</h3>
+                <p class="text-muted">Enter your unique License Key to unlock this movie.</p>
+                
+                {% if error_msg %}
+                    <div class="alert alert-danger py-1 small">{{ error_msg }}</div>
+                {% endif %}
+
+                <form method="POST">
+                    <input type="text" name="license_key" class="form-control mb-3 text-center" 
+                           placeholder="Paste Key (e.g. 452ba4c5...)" required>
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2">Activate Access</button>
+                </form>
+                <div class="mt-4 pt-3 border-top border-secondary">
+                    <p class="small mb-0">Don't have a key? <a href="/register" class="text-info">Buy a License Now</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -82,13 +82,12 @@
             <a class="navbar-brand" href="/">🛡️ LMS Portal</a>
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Register</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin">Admin Panel</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/watch_movies">🎬 Movie Portal</a></li>
                     {% if session.get('user_id') %}
-                        <li class="nav-item"><a class="nav-link" href="/dashboard">Dashboard</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/admin">Admin Panel</a></li>
-                        <li class="nav-item"><a class="nav-link text-warning fw-bold" href="/logout">Logout</a></li>
-                    {% else %}
-                        <li class="nav-item"><a class="nav-link" href="/">Register</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold text-warning" href="/logout">Logout</a></li>
                     {% endif %}
                 </ul>
             </div>

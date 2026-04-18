@@ -108,8 +108,6 @@ def dashboard():
 
 @app.route('/admin')
 def admin():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
@@ -119,8 +117,6 @@ def admin():
 
 @app.route('/delete/<int:id>')
 def delete_user(id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users WHERE id = %s', (id,))

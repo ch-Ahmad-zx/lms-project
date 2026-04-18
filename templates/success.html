@@ -1,24 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5 text-center">
-    <div class="card shadow-lg p-5 border-0">
-        <div class="mb-4">
-            <h1 style="font-size: 60px;">✅</h1>
-        </div>
-        <h2 class="text-success fw-bold">Payment Successful!</h2>
-        <p class="text-muted">Thank you for your purchase. Your account has been upgraded to <strong>Pro</strong>.</p>
-        
-        <div class="alert alert-info mt-4">
-            <h5 class="mb-2">Your New License Key:</h5>
-            <code style="font-size: 24px; letter-spacing: 2px;" class="fw-bold text-dark">
-                <code style="font-size: 24px; letter-spacing: 2px;" class="fw-bold text-dark">
-    {{ key }}
-</code>
-            </code>
-        </div>
-
-        <div class="mt-4">
-            <a href="/dashboard" class="btn btn-primary btn-lg px-5">Go to Dashboard</a>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card text-center">
+            <h1>✅</h1>
+            <h2 style="color: #1e3a5f;">Payment Successful!</h2>
+            <p class="text-muted">Your account has been activated successfully.</p>
+            <div class="p-3 rounded my-3" style="background: #1e3a5f; color: #fbbf24;">
+                <h5 class="mb-2">Your License Key:</h5>
+                <code style="font-size: 1.2rem; letter-spacing: 2px; color: #fbbf24;">{{ key }}</code>
+            </div>
+            <a href="/dashboard" class="btn btn-primary btn-lg px-5 mt-3">Go to Dashboard</a>
         </div>
     </div>
 </div>

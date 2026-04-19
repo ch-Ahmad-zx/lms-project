@@ -108,13 +108,15 @@ def dashboard():
 
 @app.route('/admin')
 def admin():
+    admin_password = request.args.get('key')
+    if admin_password != 'ahmad123':
+        return "Access Denied!", 403
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM users')
     users = cursor.fetchall()
     conn.close()
     return render_template('admin.html', users=users)
-
 @app.route('/delete/<int:id>')
 def delete_user(id):
     conn = get_db_connection()

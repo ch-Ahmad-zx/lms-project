@@ -106,17 +106,19 @@ def dashboard():
         return render_template('dashboard.html', name=display_name, key=display_key, expiry=expiry)
     return "User not found!"
 
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    admin_password = request.args.get('key')
-    if admin_password != 'ahmad123':
-        return "Access Denied!", 403
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users')
-    users = cursor.fetchall()
-    conn.close()
-    return render_template('admin.html', users=users)
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password != 'ahmad123':
+            return render_template('admin_login.html', error='Wrong password!')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users')
+        users = cursor.fetchall()
+        conn.close()
+        return render_template('admin.html', users=users)
+    return render_template('admin_login.html', error=None)
 @app.route('/delete/<int:id>')
 def delete_user(id):
     conn = get_db_connection()

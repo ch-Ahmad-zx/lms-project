@@ -2,24 +2,29 @@ import uuid
 import email
 import random
 import string
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
+import bcrypt
+
+load_dotenv()
 from datetime import datetime, timedelta
 import flask_mail
 
 app = Flask(__name__)
-app.secret_key = 'ahmad_khan_fy_project'
+app.secret_key = os.getenv('SECRET_KEY')
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = 3600
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'ahmed926475@gmail.com'
-app.config['MAIL_PASSWORD'] = 'psui tdqh hdqw ghhg'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 mail = flask_mail.Mail(app)
 
-DATABASE_URL = "postgresql://postgres.cqonjkddqxgfyqgcyeqi:navida926475%40@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres"
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
@@ -54,13 +59,14 @@ def register():
         username = request.form.get('name')
         email = request.form.get('email')
         password = request.form.get('password')
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         plan = request.form.get('plan')
         generated_key = str(uuid.uuid4())
         expiry_date = (datetime.now() + timedelta(days=30)).strftime('%d-%m-%Y')
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('INSERT INTO users (username, email, password, role, license_key, expiry_date) VALUES (%s, %s, %s, %s, %s, %s)',
-                      (username, email, password, plan, generated_key, expiry_date))
+                      (username, email, hashed_password, plan, generated_key, expiry_date))
         conn.commit()
         conn.close()
         session['username'] = username
@@ -77,10 +83,10 @@ def login():
         password = request.form.get('password')
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = %s AND password = %s', (email, password))
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
         user = cursor.fetchone()
         conn.close()
-        if user:
+        if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
             session['user_id'] = user[0]
             session['username'] = user[1]
             session['user_email'] = user[2]
@@ -112,6 +118,7 @@ def admin():
         password = request.form.get('password')
         if password != 'ahmad123':
             return render_template('admin_login.html', error='Wrong password!')
+        session['is_admin'] = True
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('SELECT * FROM users')
@@ -119,8 +126,11 @@ def admin():
         conn.close()
         return render_template('admin.html', users=users)
     return render_template('admin_login.html', error=None)
+
 @app.route('/delete/<int:id>')
 def delete_user(id):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin'))
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('DELETE FROM users WHERE id = %s', (id,))

@@ -184,6 +184,21 @@ def watch_movies():
         else:
             error_msg = "Invalid License Key! Please purchase a plan."
     return render_template('movies.html', is_unlocked=is_unlocked, error_msg=error_msg)
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('terms.html')
+
+@app.route('/refund-policy')
+def refund_policy():
+    return render_template('refund_policy.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

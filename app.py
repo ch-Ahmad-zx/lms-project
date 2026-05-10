@@ -12,6 +12,7 @@ load_dotenv()
 from datetime import datetime, timedelta
 import flask_mail
 
+from werkzeug.security import generate_password_hash
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 app.config['SESSION_PERMANENT'] = True
@@ -116,7 +117,8 @@ def dashboard():
 def admin():
     if request.method == 'POST':
         password = request.form.get('password')
-        if password != 'ahmad123':
+        admin_password = os.getenv('ADMIN_PASSWORD', 'ahmad123')
+        if password != admin_password:
             return render_template('admin_login.html', error='Wrong password!')
         session['is_admin'] = True
         conn = get_db_connection()

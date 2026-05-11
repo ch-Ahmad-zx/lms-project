@@ -79,7 +79,7 @@ def register():
         conn.close()
 
         # OTP Email bhejo
-        msg = flask_mail.Message('Your OTP Code - LMS Portal',
+        msg = Message('Your OTP Code - LMS Portal',
                       sender=os.getenv('MAIL_USERNAME'),
                       recipients=[email])
         msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'

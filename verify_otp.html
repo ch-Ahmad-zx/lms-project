@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card mx-auto" style="max-width: 450px;">
+    <h2 class="text-center mb-3">
+        <i class="bi bi-shield-lock text-primary"></i> OTP Verification
+    </h2>
+    <p class="text-center text-muted">6 digit OTP aapki email pe bheja gaya hai!</p>
+
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label fw-bold">Enter OTP</label>
+            <input type="text" name="otp" class="form-control text-center fs-4" 
+                   maxlength="6" placeholder="000000" required>
+            <small class="text-muted">OTP 5 minute mein expire ho jayega</small>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
+    </form>
+
+    <hr>
+    <p class="text-center">
+        <a href="/register">Back to Register</a>
+    </p>
+</div>
+{% endblock %}

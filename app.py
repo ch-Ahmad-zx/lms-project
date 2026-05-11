@@ -64,18 +64,60 @@ def register():
         plan = request.form.get('plan')
         generated_key = str(uuid.uuid4())
         expiry_date = (datetime.now() + timedelta(days=30)).strftime('%d-%m-%Y')
+
+        # OTP Generate karo
+        otp = ''.join(random.choices(string.digits, k=6))
+        otp_expiry = datetime.now() + timedelta(minutes=5)
+
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, email, password, role, license_key, expiry_date) VALUES (%s, %s, %s, %s, %s, %s)',
-                      (username, email, hashed_password, plan, generated_key, expiry_date))
+        cursor.execute(
+            'INSERT INTO users (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+            (username, email, hashed_password, plan, generated_key, expiry_date, False, otp, otp_expiry)
+        )
         conn.commit()
         conn.close()
-        session['username'] = username
-        session['user_email'] = email
-        session['selected_plan'] = plan
-        return redirect(url_for('login'))
-    return render_template('register.html')
 
+        # OTP Email bhejo
+        msg = Message('Your OTP Code - LMS Portal',
+                      sender=os.getenv('MAIL_USERNAME'),
+                      recipients=[email])
+        msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'
+        mail.send(msg)
+
+        session['otp_email'] = email
+        return redirect(url_for('verify_otp'))
+    return render_template('register.html')
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    email = session.get('otp_email')
+    if not email:
+        return redirect(url_for('register'))
+    
+    error = None
+    if request.method == 'POST':
+        otp_entered = request.form.get('otp')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT otp_code, otp_expiry FROM users WHERE email = %s', (email,))
+        user = cursor.fetchone()
+        
+        if not user:
+            error = 'User not found!'
+        elif user[0] != otp_entered:
+            error = 'Invalid OTP! Please try again.'
+        elif datetime.now() > user[1]:
+            error = 'OTP expired! Please register again.'
+        else:
+            cursor.execute('UPDATE users SET is_verified = TRUE WHERE email = %s', (email,))
+            conn.commit()
+            conn.close()
+            session.pop('otp_email', None)
+            return redirect(url_for('login'))
+        
+        conn.close()
+    
+    return render_template('verify_otp.html', error=error)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None

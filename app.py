@@ -10,7 +10,7 @@ import bcrypt
 
 load_dotenv()
 from datetime import datetime, timedelta
-import flask_mail
+from flask_mail import Mail, Message
 
 from werkzeug.security import generate_password_hash
 app = Flask(__name__)
@@ -23,7 +23,7 @@ app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-mail = flask_mail.Mail(app)
+mail = Mail(app)
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
@@ -79,7 +79,7 @@ def register():
         conn.close()
 
         # OTP Email bhejo
-        msg = Message('Your OTP Code - LMS Portal',
+        msg = flask_mail.Message('Your OTP Code - LMS Portal',
                       sender=os.getenv('MAIL_USERNAME'),
                       recipients=[email])
         msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'

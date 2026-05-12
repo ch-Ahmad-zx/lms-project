@@ -138,7 +138,7 @@ def verify_otp():
         otp_entered = request.form.get('otp')
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT otp_code, otp_expiry FROM users WHERE email = %s', (email,))
+        cursor.execute('SELECT otp_code, otp_expiry FROM public.users WHERE email = %s', (email,))
         user = cursor.fetchone()
         
         if not user:
@@ -148,7 +148,7 @@ def verify_otp():
         elif user[1] and datetime.now() > user[1].replace(tzinfo=None):
             error = 'OTP expired! Please register again.'
         else:
-            cursor.execute('UPDATE users SET is_verified = TRUE WHERE email = %s', (email,))
+            cursor.execute('UPDATE public.users SET is_verified = TRUE WHERE email = %s', (email,))
             conn.commit()
             conn.close()
             session.pop('otp_email', None)

@@ -132,30 +132,49 @@ def verify_otp():
     email = session.get('otp_email')
     if not email:
         return redirect(url_for('register'))
-    
+
     error = None
     if request.method == 'POST':
-        otp_entered = request.form.get('otp')
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT otp_code, otp_expiry FROM public.users WHERE email = %s', (email,))
-        user = cursor.fetchone()
-        
-        if not user:
-            error = 'User not found!'
-        elif user[0] != otp_entered:
-            error = 'Invalid OTP! Please try again.'
-        elif user[1] and datetime.now() > user[1].replace(tzinfo=None):
-            error = 'OTP expired! Please register again.'
-        else:
-            cursor.execute('UPDATE public.users SET is_verified = TRUE WHERE email = %s', (email,))
-            conn.commit()
-            conn.close()
-            session.pop('otp_email', None)
-            return redirect(url_for('login'))
-        
-        conn.close()
-    
+        try:
+            # 1. User ka input len aur uske agay peechay se faltu spaces khatam karein
+            otp_entered = request.form.get('otp').strip()
+            
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # 2. Database se OTP aur Expiry mangwayein
+            cursor.execute('SELECT otp_code, otp_expiry FROM public.users WHERE email = %s', (email,))
+            user_data = cursor.fetchone()
+
+            if user_data:
+                # Database wala OTP bhi string mein convert karein
+                db_otp = str(user_data[0]).strip()
+                expiry = user_data[1]
+
+                # 3. Dono ko compare karein
+                if db_otp == otp_entered:
+                    # Time check (tzinfo=None se errors nahi aate)
+                    if datetime.now() < expiry.replace(tzinfo=None):
+                        cursor.execute('UPDATE public.users SET is_verified = TRUE WHERE email = %s', (email,))
+                        conn.commit()
+                        session.pop('otp_email', None)
+                        cursor.close()
+                        conn.close()
+                        return redirect(url_for('login')) # Verify ho gaya toh login pe bhej dein
+                    else:
+                        error = 'OTP expired ho gaya hai! Dubara register karein.'
+                else:
+                    error = 'Invalid OTP! Email dobara check karein.'
+            else:
+                error = 'User nahi mila!'
+                
+            if conn:
+                cursor.close()
+                conn.close()
+                
+        except Exception as e:
+            error = f"Database Error: {str(e)}"
+
     return render_template('verify_otp.html', error=error)
 @app.route('/login', methods=['GET', 'POST'])
 def login():

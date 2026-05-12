@@ -145,7 +145,7 @@ def verify_otp():
             error = 'User not found!'
         elif user[0] != otp_entered:
             error = 'Invalid OTP! Please try again.'
-        elif datetime.now() > user[1]:
+        elif user[1] and datetime.now() > user[1].replace(tzinfo=None):
             error = 'OTP expired! Please register again.'
         else:
             cursor.execute('UPDATE users SET is_verified = TRUE WHERE email = %s', (email,))

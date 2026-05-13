@@ -179,24 +179,26 @@ def verify_otp():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email').strip()
-        password = request.form.get('password')
+        email = request.form.get('email').strip().lower() # Email ko lower case mein check karein
+        password = request.form.get('password').strip()
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            # Sirf un users ko login karne dein jo verified hain
+            # Database se user uthayein
             cursor.execute('SELECT id, email, password, is_verified FROM public.users WHERE email = %s', (email,))
             user = cursor.fetchone()
-
+            
             if user:
                 user_id, db_email, db_password, is_verified = user
                 
                 if not is_verified:
                     return render_template('login.html', error="Please verify your email first!")
 
-                # Password check (Agar aapne hashing use ki hai toh check_password_hash use karein)
+                # Password Matching:
+                # Agar aap hashing use kar rahe hain toh check_password_hash(db_password, password) use karein
+                # Agar simple text hai toh direct match karein
                 if db_password == password:
                     session['user_id'] = user_id
                     session['email'] = db_email
@@ -207,7 +209,7 @@ def login():
                 return render_template('login.html', error="User not found.")
 
         except Exception as e:
-            return f"Backend Error: {str(e)}"
+            return f"Login Error: {str(e)}"
         finally:
             if conn:
                 cursor.close()

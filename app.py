@@ -1,23 +1,25 @@
 import uuid
-import email
 import random
 import string
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
 import psycopg2
-import bcrypt
-
-load_dotenv()
 from datetime import datetime, timedelta
 from flask_mail import Mail, Message
 
-from werkzeug.security import generate_password_hash
+# Hashing ke liye sirf ye dono tools chahiye
+from werkzeug.security import generate_password_hash, check_password_hash
+
+# Environment variables load karein
+load_dotenv()
+
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY')
 app.config['SESSION_PERMANENT'] = True
 app.config['PERMANENT_SESSION_LIFETIME'] = 3600
 
+# Email Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -67,15 +69,15 @@ def register():
             if not username or not email or not password:
                 return "<h1>Error:</h1><p>Please fill all fields.</p>"
 
-            # 2. Password Hashing (Bcrypt)
-            password_bytes = password.encode('utf-8')
-            hashed_password = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+            # 2. Password Hashing
+            hashed_password = generate_password_hash(password)
 
             # 3. License aur OTP details generate karna
             generated_key = str(uuid.uuid4())
+
             # Expiry date 30 days baad ki
             expiry_date_obj = datetime.now() + timedelta(days=30)
-            expiry_date_str = expiry_date_obj.strftime('%d-%m-%Y')
+            expiry_date_str = expiry_date_obj.strftime('%Y-%m-%d %H:%M:%S')
 
             otp = ''.join(random.choices(string.digits, k=6))
             otp_expiry = datetime.now() + timedelta(minutes=5)
@@ -83,25 +85,24 @@ def register():
             # 4. Database mein entry save karna
             conn = get_db_connection()
             cursor = conn.cursor()
-            
             insert_query = """
-                INSERT INTO users 
-                (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry) 
+                INSERT INTO users
+                (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            
+
             cursor.execute(insert_query, (
-                username, 
-                email, 
-                hashed_password, 
-                plan, 
-                generated_key, 
-                expiry_date_str, 
-                False, 
-                otp, 
+                username,
+                email,
+                hashed_password,
+                plan,
+                generated_key,
+                expiry_date_str,
+                False,
+                otp,
                 otp_expiry
             ))
-            
+
             conn.commit()
             cursor.close()
             conn.close()
@@ -111,7 +112,7 @@ def register():
                 msg = Message('Your OTP Code - LMS Portal',
                               sender=os.getenv('MAIL_USERNAME'),
                               recipients=[email])
-                msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'
+                msg.body = f'Your Otp code is: {otp}\n\nThis code will expire in 5 minutes.'
                 mail.send(msg)
             except Exception as email_err:
                 # Agar email na bhi jaye toh user register ho chuka hai, bas error print ho jaye
@@ -176,32 +177,32 @@ def verify_otp():
             error = f"System Error: {str(e)}"
 
     return render_template('verify_otp.html', error=error)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email').strip().lower() # Email ko lower case mein check karein
+        email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            # Database se user uthayein
+            # Database se user fetch karein
             cursor.execute('SELECT id, email, password, is_verified FROM public.users WHERE email = %s', (email,))
             user = cursor.fetchone()
             
             if user:
-                user_id, db_email, db_password, is_verified = user
+                u_id, u_email, u_hashed_password, u_verified = user
                 
-                if not is_verified:
+                if not u_verified:
                     return render_template('login.html', error="Please verify your email first!")
 
-                # Password Matching:
-                # Agar aap hashing use kar rahe hain toh check_password_hash(db_password, password) use karein
-                # Agar simple text hai toh direct match karein
-                if db_password == password:
-                    session['user_id'] = user_id
-                    session['email'] = db_email
+                # YAHAN ASAL TABDEELI HAI:
+                # Hashed password ko input password se match karna
+                if check_password_hash(u_hashed_password, password):
+                    session['user_id'] = u_id
+                    session['email'] = u_email
                     return redirect(url_for('dashboard'))
                 else:
                     return render_template('login.html', error="Invalid email or password.")
@@ -216,7 +217,6 @@ def login():
                 conn.close()
 
     return render_template('login.html')
-
 @app.route('/dashboard')
 def dashboard():
     user_id = session.get('user_id')

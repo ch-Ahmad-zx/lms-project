@@ -62,75 +62,52 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        plan = request.form.get('plan', 'Standard') # Default plan agar form mein na ho
+        plan = request.form.get('plan', 'Standard')
 
+        # Input validation
         if not username or not email or not password:
-            return render_template('register.html', error="Please fill all fields.")
+            return render_template('register.html', error="Please fill all fields.", username=username, email=email)
 
-        # 1. Password Hashing (Werkzeug - Consistent with Login)
         hashed_password = generate_password_hash(password)
-
-        # 2. License aur OTP details generate karna
         generated_key = str(uuid.uuid4())
-        
-        # Expiry date 30 days baad ki
         expiry_date_obj = datetime.now() + timedelta(days=30)
         expiry_date_str = expiry_date_obj.strftime('%Y-%m-%d %H:%M:%S')
-
         otp = ''.join(random.choices(string.digits, k=6))
         otp_expiry = datetime.now() + timedelta(minutes=5)
 
-        # 3. Database mein entry save karna
         conn = get_db_connection()
         cursor = conn.cursor()
 
         try:
+            # Database insertion
             insert_query = """
                 INSERT INTO users 
                 (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            cursor.execute(insert_query, (
-                username, 
-                email, 
-                hashed_password, 
-                plan, 
-                generated_key, 
-                expiry_date_str, 
-                False, 
-                otp, 
-                otp_expiry
-            ))
+            cursor.execute(insert_query, (username, email, hashed_password, plan, generated_key, expiry_date_str, False, otp, otp_expiry))
             conn.commit()
 
-            # 4. OTP Email bhejha
+            # Email sending
             try:
-                msg = Message('Your OTP Code - LMS Portal',
-                            sender=os.getenv('MAIL_USERNAME'),
-                            recipients=[email])
+                msg = Message('Your OTP Code - LMS Portal', sender=os.getenv('MAIL_USERNAME'), recipients=[email])
                 msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'
                 mail.send(msg)
-            except Exception as email_err:
-                print(f"Mail Error: {email_err}")
+            except Exception as e:
+                print(f"Mail Error: {e}")
 
-            # 5. Session mein save karke verify page par bhejna
             session['otp_email'] = email
             return redirect(url_for('verify_otp'))
 
         except Exception as e:
             conn.rollback()
-            # Agar email pehle se hai toh professional error dikhao
-            if "already exists" in str(e) or "unique constraint" in str(e):
-                return render_template('register.html', error="This email is already registered. Please Login.")
-            
-            # Baqi kisi bhi backend error ke liye
-            return f"<h1>Backend Error:</h1><p>{str(e)}</p><a href='/register'>Try Again</a>"
-            
+            error_msg = "This email is already registered. Please Login." if "already exists" in str(e).lower() or "unique" in str(e).lower() else f"Error: {str(e)}"
+            # Data wapas bhej rahe hain taake form khali na ho
+            return render_template('register.html', error=error_msg, username=username, email=email)
         finally:
             cursor.close()
             conn.close()
 
-    # GET request par sirf page dikhao
     return render_template('register.html')
 @app.route('/verify-otp', methods=['GET', 'POST'])
 def verify_otp():
@@ -230,19 +207,18 @@ def dashboard():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Database se user ki details nikalein
-    cursor.execute('SELECT license_key, expiry_date FROM public.users WHERE id = %s', (user_id,))
-    user_data = cursor.fetchone()
-    
-    conn.close()
-
-    if user_data:
-        l_key = user_data[0]
-        # Expiry date ko format karein taake achi lagay
-        e_date = user_data[1] # Agar database mein string hai toh formatting ki zaroorat nahi
-        return render_template('dashboard.html', license_key=l_key, expiry_date=e_date)
-    
-    return "User data not found."
+    try:
+        cursor.execute('SELECT license_key, expiry_date FROM users WHERE id = %s', (user_id,))
+        user_data = cursor.fetchone()
+        
+        if user_data:
+            return render_template('dashboard.html', license_key=user_data[0], expiry_date=user_data[1])
+        return "User data not found."
+    except Exception as e:
+        return f"Dashboard Error: {str(e)}"
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():

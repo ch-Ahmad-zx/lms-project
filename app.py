@@ -59,74 +59,78 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        plan = request.form.get('plan', 'Standard') # Default plan agar form mein na ho
+
+        if not username or not email or not password:
+            return render_template('register.html', error="Please fill all fields.")
+
+        # 1. Password Hashing (Werkzeug - Consistent with Login)
+        hashed_password = generate_password_hash(password)
+
+        # 2. License aur OTP details generate karna
+        generated_key = str(uuid.uuid4())
+        
+        # Expiry date 30 days baad ki
+        expiry_date_obj = datetime.now() + timedelta(days=30)
+        expiry_date_str = expiry_date_obj.strftime('%Y-%m-%d %H:%M:%S')
+
+        otp = ''.join(random.choices(string.digits, k=6))
+        otp_expiry = datetime.now() + timedelta(minutes=5)
+
+        # 3. Database mein entry save karna
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
         try:
-            # 1. Form se data fetch karna
-            username = request.form.get('name')
-            email = request.form.get('email')
-            password = request.form.get('password')
-            plan = request.form.get('plan')
-
-            if not username or not email or not password:
-                return "<h1>Error:</h1><p>Please fill all fields.</p>"
-
-            # 2. Password Hashing
-            hashed_password = generate_password_hash(password)
-
-            # 3. License aur OTP details generate karna
-            generated_key = str(uuid.uuid4())
-
-            # Expiry date 30 days baad ki
-            expiry_date_obj = datetime.now() + timedelta(days=30)
-            expiry_date_str = expiry_date_obj.strftime('%Y-%m-%d %H:%M:%S')
-
-            otp = ''.join(random.choices(string.digits, k=6))
-            otp_expiry = datetime.now() + timedelta(minutes=5)
-
-            # 4. Database mein entry save karna
-            conn = get_db_connection()
-            cursor = conn.cursor()
             insert_query = """
-                INSERT INTO users
+                INSERT INTO users 
                 (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-
             cursor.execute(insert_query, (
-                username,
-                email,
-                hashed_password,
-                plan,
-                generated_key,
-                expiry_date_str,
-                False,
-                otp,
+                username, 
+                email, 
+                hashed_password, 
+                plan, 
+                generated_key, 
+                expiry_date_str, 
+                False, 
+                otp, 
                 otp_expiry
             ))
-
             conn.commit()
-            cursor.close()
-            conn.close()
 
-            # 5. OTP Email bhejna
+            # 4. OTP Email bhejha
             try:
                 msg = Message('Your OTP Code - LMS Portal',
-                              sender=os.getenv('MAIL_USERNAME'),
-                              recipients=[email])
-                msg.body = f'Your Otp code is: {otp}\n\nThis code will expire in 5 minutes.'
+                            sender=os.getenv('MAIL_USERNAME'),
+                            recipients=[email])
+                msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'
                 mail.send(msg)
             except Exception as email_err:
-                # Agar email na bhi jaye toh user register ho chuka hai, bas error print ho jaye
                 print(f"Mail Error: {email_err}")
 
-            # 6. Session mein email save karke verify page par bhejna
+            # 5. Session mein save karke verify page par bhejna
             session['otp_email'] = email
             return redirect(url_for('verify_otp'))
 
         except Exception as e:
-            # Ye line aapko screen par batayegi ke asly masla kya hai
-            return f"<h1>Backend Error:</h1><p>{str(e)}</p><br><a href='/register'>Try Again</a>"
+            conn.rollback()
+            # Agar email pehle se hai toh professional error dikhao
+            if "already exists" in str(e) or "unique constraint" in str(e):
+                return render_template('register.html', error="This email is already registered. Please Login.")
+            
+            # Baqi kisi bhi backend error ke liye
+            return f"<h1>Backend Error:</h1><p>{str(e)}</p><a href='/register'>Try Again</a>"
+            
+        finally:
+            cursor.close()
+            conn.close()
 
-    # GET request par registration page dikhana
+    # GET request par sirf page dikhao
     return render_template('register.html')
 @app.route('/verify-otp', methods=['GET', 'POST'])
 def verify_otp():

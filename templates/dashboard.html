@@ -1,21 +1,58 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card text-center">
-            <h2 style="color: #1e3a5f;">🎉 Registration Successful!</h2>
-            <hr>
-            <h4 class="mb-3">Welcome, {{ name }}!</h4>
-            <div class="p-3 rounded mb-3" style="background: #1e3a5f; color: #fbbf24;">
-                <strong>License Key:</strong><br>
-                <span style="font-size: 1.1rem; letter-spacing: 1px;">{{ key }}</span>
-            </div>
-            <p><strong>Expires:</strong> {{ expiry }}</p>
-            <div class="d-grid gap-2 mt-3">
-                <button onclick="window.print()" class="btn btn-primary">Download/Print License</button>
-                <a href="/logout" class="btn btn-outline-danger">Logout</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard | LMS Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; }
+        .card { background: #1e293b; border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .license-box { background: #334155; padding: 15px; border-radius: 10px; font-family: monospace; letter-spacing: 2px; }
+        .status-badge { border-radius: 20px; padding: 5px 15px; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Welcome, <span class="text-primary">{{ session['email'] }}</span></h2>
+                        <a href="/logout" class="btn btn-outline-danger btn-sm">Logout</a>
+                    </div>
+
+                    <div class="mb-4 text-center">
+                        <h5 class="text-secondary">Your Product License Key</h5>
+                        <div class="license-box mt-2">
+                            <span id="licenseKey" class="h4 text-warning">{{ license_key }}</span>
+                        </div>
+                        <button onclick="copyKey()" class="btn btn-sm btn-info mt-2">Copy Key</button>
+                    </div>
+
+                    <hr class="text-secondary">
+
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <p class="mb-1 text-secondary">Subscription Status</p>
+                            <span class="badge bg-success status-badge">Active</span>
+                        </div>
+                        <div class="col-6 text-end">
+                            <p class="mb-1 text-secondary">Expiry Date</p>
+                            <p class="fw-bold">{{ expiry_date }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script>
+        function copyKey() {
+            var key = document.getElementById("licenseKey").innerText;
+            navigator.clipboard.writeText(key);
+            alert("License Key copied to clipboard!");
+        }
+    </script>
+</body>
+</html>

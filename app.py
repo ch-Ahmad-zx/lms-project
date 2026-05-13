@@ -219,31 +219,26 @@ def login():
     return render_template('login.html')
 @app.route('/dashboard')
 def dashboard():
-    user_id = session.get('user_id')
-    if not user_id:
+    if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        # Database se user ki details lena
-        cursor.execute('SELECT username, license_key, email FROM public.users WHERE id = %s', (user_id,))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Database se user ki details nikalein
+    cursor.execute('SELECT license_key, expiry_date FROM public.users WHERE id = %s', (user_id,))
+    user_data = cursor.fetchone()
+    
+    conn.close()
 
-        if user:
-            display_name = user[0] if user[0] else "User"
-            # Agar key nahi hai toh "No Key Assigned" show hoga
-            display_key = user[1] if user[1] else "No Key Assigned"
-            # 30 din baad ki expiry calculate karna
-            expiry = (datetime.now() + timedelta(days=30)).strftime('%d-%m-%Y')
-            
-            return render_template('dashboard.html', name=display_name, key=display_key, expiry=expiry, email=user[2])
-        
-        return "User not found!"
-    except Exception as e:
-        return f"Dashboard Error: {str(e)}"
+    if user_data:
+        l_key = user_data[0]
+        # Expiry date ko format karein taake achi lagay
+        e_date = user_data[1] # Agar database mein string hai toh formatting ki zaroorat nahi
+        return render_template('dashboard.html', license_key=l_key, expiry_date=e_date)
+    
+    return "User data not found."
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():

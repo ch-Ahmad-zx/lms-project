@@ -203,7 +203,7 @@ def login():
                 if check_password_hash(u_hashed_password, password):
                     session['user_id'] = u_id
                     session['email'] = u_email
-                    return redirect(url_for('dashboard'))
+                    return redirect(url_for('payment'))
                 else:
                     return render_template('login.html', error="Invalid email or password.")
             else:

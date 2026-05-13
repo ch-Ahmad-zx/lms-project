@@ -136,82 +136,112 @@ def verify_otp():
     error = None
     if request.method == 'POST':
         try:
-            # 1. User ka input len aur uske agay peechay se faltu spaces khatam karein
+            # Taking input and removing any accidental spaces
             otp_entered = request.form.get('otp').strip()
             
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            # 2. Database se OTP aur Expiry mangwayein
+            # Fetching OTP and Expiry from database
             cursor.execute('SELECT otp_code, otp_expiry FROM public.users WHERE email = %s', (email,))
             user_data = cursor.fetchone()
 
             if user_data:
-                # Database wala OTP bhi string mein convert karein
                 db_otp = str(user_data[0]).strip()
                 expiry = user_data[1]
 
-                # 3. Dono ko compare karein
+                # Debugging: Match exact values
                 if db_otp == otp_entered:
-                    # Time check (tzinfo=None se errors nahi aate)
+                    # Expiry Check
                     if datetime.now() < expiry.replace(tzinfo=None):
+                        # Update user status to verified
                         cursor.execute('UPDATE public.users SET is_verified = TRUE WHERE email = %s', (email,))
                         conn.commit()
                         session.pop('otp_email', None)
                         cursor.close()
                         conn.close()
-                        return redirect(url_for('login')) # Verify ho gaya toh login pe bhej dein
+                        return redirect(url_for('login'))
                     else:
-                        error = 'OTP expired ho gaya hai! Dubara register karein.'
+                        error = 'OTP has expired! Please register again.'
                 else:
-                    error = 'Invalid OTP! Email dobara check karein.'
+                    error = 'Invalid OTP! Please check your email and try again.'
             else:
-                error = 'User nahi mila!'
+                error = 'User session not found. Please register again.'
                 
             if conn:
                 cursor.close()
                 conn.close()
                 
         except Exception as e:
-            error = f"Database Error: {str(e)}"
+            error = f"System Error: {str(e)}"
 
     return render_template('verify_otp.html', error=error)
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email').strip()
         password = request.form.get('password')
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
-        user = cursor.fetchone()
-        conn.close()
-        if user and bcrypt.checkpw(password.encode('utf-8'), user[3].encode('utf-8')):
-            session['user_id'] = user[0]
-            session['username'] = user[1]
-            session['user_email'] = user[2]
-            return redirect(url_for('payment'))
-        else:
-            error = "Invalid Email or Password. Please try again."
-    return render_template('login.html', error=error)
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # Sirf un users ko login karne dein jo verified hain
+            cursor.execute('SELECT id, email, password, is_verified FROM public.users WHERE email = %s', (email,))
+            user = cursor.fetchone()
+
+            if user:
+                user_id, db_email, db_password, is_verified = user
+                
+                if not is_verified:
+                    return render_template('login.html', error="Please verify your email first!")
+
+                # Password check (Agar aapne hashing use ki hai toh check_password_hash use karein)
+                if db_password == password:
+                    session['user_id'] = user_id
+                    session['email'] = db_email
+                    return redirect(url_for('dashboard'))
+                else:
+                    return render_template('login.html', error="Invalid email or password.")
+            else:
+                return render_template('login.html', error="User not found.")
+
+        except Exception as e:
+            return f"Backend Error: {str(e)}"
+        finally:
+            if conn:
+                cursor.close()
+                conn.close()
+
+    return render_template('login.html')
 
 @app.route('/dashboard')
 def dashboard():
     user_id = session.get('user_id')
     if not user_id:
         return redirect(url_for('login'))
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('SELECT username, license_key FROM users WHERE id = %s', (user_id,))
-    user = cursor.fetchone()
-    conn.close()
-    if user:
-        display_name = user[0]
-        display_key = user[1] if user[1] else "No Key Assigned"
-        expiry = (datetime.now() + timedelta(days=30)).strftime('%d-%m-%Y')
-        return render_template('dashboard.html', name=display_name, key=display_key, expiry=expiry)
-    return "User not found!"
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Database se user ki details lena
+        cursor.execute('SELECT username, license_key, email FROM public.users WHERE id = %s', (user_id,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if user:
+            display_name = user[0] if user[0] else "User"
+            # Agar key nahi hai toh "No Key Assigned" show hoga
+            display_key = user[1] if user[1] else "No Key Assigned"
+            # 30 din baad ki expiry calculate karna
+            expiry = (datetime.now() + timedelta(days=30)).strftime('%d-%m-%Y')
+            
+            return render_template('dashboard.html', name=display_name, key=display_key, expiry=expiry, email=user[2])
+        
+        return "User not found!"
+    except Exception as e:
+        return f"Dashboard Error: {str(e)}"
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():

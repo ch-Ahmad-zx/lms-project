@@ -216,21 +216,25 @@ def dashboard():
         cursor.close()
         conn.close()
 
-@app.route('/admin', methods=['GET', 'POST'])
+@app.route('/admin')
 def admin():
-    if request.method == 'POST':
-        password = request.form.get('password')
-        admin_password = os.getenv('ADMIN_PASSWORD', 'ahmad123')
-        if password != admin_password:
-            return render_template('admin_login.html', error='Wrong password!')
-        session['is_admin'] = True
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users')
-        users = cursor.fetchall()
-        conn.close()
-        return render_template('admin.html', users=users)
-    return render_template('admin_login.html', error=None)
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # SELECT * ki jagah columns ke naam tarteeb se likhein
+    cursor.execute('''
+        SELECT id, username, email, role, license_key, expiry_date 
+        FROM users 
+        ORDER BY id DESC
+    ''')
+    all_users = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return render_template('admin_dashboard.html', users=all_users)
 
 @app.route('/delete/<int:id>')
 def delete_user(id):

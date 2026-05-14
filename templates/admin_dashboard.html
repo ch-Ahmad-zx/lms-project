@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-white">User Management Portal</h2>
+        <div>
+            <span class="badge bg-info text-dark p-2">Total Users: {{ users|length }}</span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm ms-3">Logout Admin</a>
+        </div>
+    </div>
+
+    <div class="card shadow-lg border-0 bg-dark text-white" style="border-radius: 15px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0" style="border-radius: 15px; overflow: hidden;">
+                    <thead class="table-light text-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Current Plan</th>
+                            <th>License Key</th>
+                            <th>Expiry</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user[0] }}</td>
+                            <td><strong>{{ user[1] }}</strong></td>
+                            <td>{{ user[2] }}</td>
+                            <td>
+                                <span class="badge {% if user[3] == 'Ultimate' %}bg-warning text-dark{% else %}bg-primary{% endif %}">
+                                    {{ user[3] }}
+                                </span>
+                            </td>
+                            <td><code class="text-info">{{ user[4] }}</code></td>
+                            <td><small>{{ user[5] }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body { background-color: #1a1a2e; }
+    .table-hover tbody tr:hover { background-color: rgba(255,255,255,0.05); }
+    .card { background: linear-gradient(145deg, #16213e, #0f3460); }
+</style>
+{% endblock %}

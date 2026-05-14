@@ -43,11 +43,7 @@
                             <td><code class="text-info">{{ user[4] }}</code></td>
                             <td>{{ user[5] }}</td>
                             <td class="text-center">
-                                <a href="{{ url_for('delete_user', user_id=user[0]) }}" 
-                                   class="btn btn-danger btn-sm" 
-                                   onclick="return confirm('Are you sure you want to permanently delete this user?')">
-                                    Delete
-                                </a>
+                               <button class="btn btn-danger btn-sm" onclick="confirmDelete('{{ user[0] }}')">Delete</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -74,4 +70,24 @@ document.getElementById('adminSearch').addEventListener('keyup', function() {
     .table tbody td { padding: 15px; vertical-align: middle; border-color: #334155; }
     .card { overflow: hidden; }
 </style>
+<script>
+function confirmDelete(userId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "This user will be permanently removed!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        background: '#1a1a2e',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // This line redirects to the delete route only after you click 'Yes'
+            window.location.href = "/delete_user/" + userId;
+        }
+    })
+}
+</script>
 {% endblock %}

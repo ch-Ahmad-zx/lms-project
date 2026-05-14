@@ -235,6 +235,24 @@ def admin():
     cursor.close()
     conn.close()
     return render_template('admin_dashboard.html', users=all_users)
+@app.route('/delete_user/<int:user_id>')
+def delete_user(user_id):
+    # Security check: sirf admin hi delete kar sakay
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"Delete Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return redirect(url_for('admin'))
 
 @app.route('/delete/<int:id>')
 def delete_user(id):

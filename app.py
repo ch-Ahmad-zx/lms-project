@@ -218,12 +218,10 @@ def dashboard():
 
 @app.route('/admin')
 def admin():
-    # Agar 'admin_login' error de raha hai, toh hum simple 'login' use karenge
+    # Check karein ke user login hai aur admin hai
     if not session.get('is_admin'):
-        try:
-            return redirect(url_for('admin_login'))
-        except:
-            return redirect(url_for('login'))
+        # Agar admin login nahi hai, toh login page par bhejein
+        return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()

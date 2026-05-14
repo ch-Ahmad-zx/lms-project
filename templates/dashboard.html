@@ -34,8 +34,7 @@
                     <h2 class="mb-4 text-info">License Management</h2>
                     <p class="text-secondary">Your Product Key:</p>
                     <div class="key-box mb-3" id="key">{{ license_key }}</div>
-                    <button class="btn btn-info btn-sm mb-4" onclick="navigator.clipboard.writeText('{{ license_key }}'); alert('Copied!');">Copy Key</button>
-                    
+<button class="btn btn-info btn-sm mb-4" onclick="copyKey('{{ license_key }}')">Copy Key</button>                    
                     <div class="row border-top pt-4 border-secondary">
                         <div class="col-6 text-start">
                             <small class="text-secondary d-block">STATUS</small>
@@ -53,5 +52,22 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function copyKey(key) {
+    navigator.clipboard.writeText(key);
+    Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: 'Key copied to clipboard!',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true,
+        background: '#1a1a2e',
+        color: '#fff'
+    });
+}
+</script>
 </body>
 </html>

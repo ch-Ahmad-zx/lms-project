@@ -218,13 +218,16 @@ def dashboard():
 
 @app.route('/admin')
 def admin():
+    # Agar 'admin_login' error de raha hai, toh hum simple 'login' use karenge
     if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
+        try:
+            return redirect(url_for('admin_login'))
+        except:
+            return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # SELECT * ki jagah columns ke naam tarteeb se likhein
     cursor.execute('''
         SELECT id, username, email, role, license_key, expiry_date 
         FROM users 
@@ -252,17 +255,6 @@ def delete_user(user_id):
         cursor.close()
         conn.close()
     
-    return redirect(url_for('admin'))
-
-@app.route('/delete/<int:id>')
-def delete_user(id):
-    if not session.get('is_admin'):
-        return redirect(url_for('admin'))
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM users WHERE id = %s', (id,))
-    conn.commit()
-    conn.close()
     return redirect(url_for('admin'))
 
 @app.route('/logout')

@@ -62,24 +62,22 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        plan = request.form.get('plan', 'Standard')
+        plan = request.form.get('plan', 'Basic')
 
-        # Input validation
+        # Agar koi cheez khali hai toh error dikhao aur data wapas bhejo
         if not username or not email or not password:
             return render_template('register.html', error="Please fill all fields.", username=username, email=email)
 
-        hashed_password = generate_password_hash(password)
-        generated_key = str(uuid.uuid4())
-        expiry_date_obj = datetime.now() + timedelta(days=30)
-        expiry_date_str = expiry_date_obj.strftime('%Y-%m-%d %H:%M:%S')
-        otp = ''.join(random.choices(string.digits, k=6))
-        otp_expiry = datetime.now() + timedelta(minutes=5)
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
         try:
-            # Database insertion
+            hashed_password = generate_password_hash(password)
+            generated_key = str(uuid.uuid4())
+            expiry_date_str = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+            otp = ''.join(random.choices(string.digits, k=6))
+            otp_expiry = datetime.now() + timedelta(minutes=5)
+
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
             insert_query = """
                 INSERT INTO users 
                 (username, email, password, role, license_key, expiry_date, is_verified, otp_code, otp_expiry)
@@ -88,25 +86,23 @@ def register():
             cursor.execute(insert_query, (username, email, hashed_password, plan, generated_key, expiry_date_str, False, otp, otp_expiry))
             conn.commit()
 
-            # Email sending
-            try:
-                msg = Message('Your OTP Code - LMS Portal', sender=os.getenv('MAIL_USERNAME'), recipients=[email])
-                msg.body = f'Your OTP code is: {otp}\n\nThis code will expire in 5 minutes.'
-                mail.send(msg)
-            except Exception as e:
-                print(f"Mail Error: {e}")
+            # Email bhejte hain
+            msg = Message('Your OTP Code', sender=os.getenv('MAIL_USERNAME'), recipients=[email])
+            msg.body = f'Your OTP is: {otp}'
+            mail.send(msg)
 
             session['otp_email'] = email
             return redirect(url_for('verify_otp'))
 
         except Exception as e:
-            conn.rollback()
-            error_msg = "This email is already registered. Please Login." if "already exists" in str(e).lower() or "unique" in str(e).lower() else f"Error: {str(e)}"
-            # Data wapas bhej rahe hain taake form khali na ho
+            if conn: conn.rollback()
+            # AGAR EMAIL PEHLE SE HAI TO YAHAN ERROR HANDLE HOGA
+            error_msg = "This email is already registered. Please Login." if "already exists" in str(e).lower() else f"Error: {str(e)}"
             return render_template('register.html', error=error_msg, username=username, email=email)
+        
         finally:
-            cursor.close()
-            conn.close()
+            if cursor: cursor.close()
+            if conn: conn.close()
 
     return render_template('register.html')
 @app.route('/verify-otp', methods=['GET', 'POST'])

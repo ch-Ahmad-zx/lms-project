@@ -228,24 +228,25 @@ def dashboard():
 
 @app.route('/admin')
 def admin():
-    # Check karein ke user login hai aur admin hai
+
     if not session.get('is_admin'):
-        # Agar admin login nahi hai, toh login page par bhejein
-        return redirect(url_for('login'))
+        return redirect(url_for('admin_login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    cursor.execute('''
-        SELECT id, username, email, role, license_key, expiry_date 
-        FROM users 
+
+    cursor.execute("""
+        SELECT id, username, email, role, license_key, expiry_date
+        FROM users
         ORDER BY id DESC
-    ''')
+    """)
+
     all_users = cursor.fetchall()
-    
+
     cursor.close()
     conn.close()
-    return render_template('admin_dashboard.html', users=all_users)
+
+    return render_template('admin.html', users=all_users)
 @app.route('/delete_user/<int:user_id>')
 def delete_user(user_id):
     # Security check: sirf admin hi delete kar sakay

@@ -161,6 +161,16 @@ def login():
         email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
+        # 1. ADMIN LOGIN CHECK (Manual Check)
+        # Aap yahan apna pasandida email aur password rakh sakte hain
+        if email == "admin@gmail.com" and password == "admin123":
+            session['user_id'] = 0
+            session['email'] = email
+            session['is_admin'] = True  # Dashboard kholne ke liye ye zaroori hai
+            session.modified = True
+            return redirect(url_for('admin'))
+
+        # 2. DATABASE USER LOGIN
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -174,18 +184,18 @@ def login():
                 
                 if not u_verified:
                     return render_template('login.html', error="Please verify your email first!")
-
-                # YAHAN ASAL TABDEELI HAI:
-                # Hashed password ko input password se match karna
+                
+                # Password matching
                 if check_password_hash(u_hashed_password, password):
                     session['user_id'] = u_id
                     session['email'] = u_email
-                    return redirect(url_for('payment'))
+                    session['is_admin'] = False # Normal user admin nahi hota
+                    return redirect(url_for('dashboard')) # Ya jo bhi aapka home page hai
                 else:
                     return render_template('login.html', error="Invalid email or password.")
             else:
                 return render_template('login.html', error="User not found.")
-
+                
         except Exception as e:
             return f"Login Error: {str(e)}"
         finally:

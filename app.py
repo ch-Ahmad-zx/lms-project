@@ -161,20 +161,20 @@ def login():
         email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
-        # 1. ADMIN LOGIN CHECK (Manual Check)
-        # Aap yahan apna pasandida email aur password rakh sakte hain
+# 1. ADMIN LOGIN CHECK (Manual Check)
         if email == "admin@gmail.com" and password == "admin123":
+            session.permanent = True
             session['user_id'] = 0
             session['email'] = email
             session['is_admin'] = True  # Dashboard kholne ke liye ye zaroori hai
             session.modified = True
-            return redirect(url_for('admin'))
+            return redirect('/admin')
 
         # 2. DATABASE USER LOGIN
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            
+
             # Database se user fetch karein
             cursor.execute('SELECT id, email, password, is_verified FROM public.users WHERE email = %s', (email,))
             user = cursor.fetchone()

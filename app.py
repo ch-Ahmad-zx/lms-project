@@ -230,7 +230,7 @@ def dashboard():
 def admin():
 
     if not session.get('is_admin'):
-        return redirect(url_for('admin_login'))
+    return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()

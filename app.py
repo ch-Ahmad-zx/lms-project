@@ -326,6 +326,82 @@ def delete_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM public.users WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            cursor.close()
+            conn.close()
+
+            if user:
+                otp = ''.join(random.choices(string.digits, k=6))
+                otp_expiry = datetime.now() + timedelta(minutes=5)
+                
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE public.users SET otp_code = %s, otp_expiry = %s WHERE email = %s",
+                             (otp, otp_expiry, email))
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+                msg = Message('Password Reset OTP',
+                            sender=app.config['MAIL_USERNAME'],
+                            recipients=[email])
+                msg.body = f'Your OTP for password reset is: {otp}'
+                mail.send(msg)
+
+                session['reset_email'] = email
+                return redirect(url_for('reset_password'))
+            else:
+                return render_template('forgot_password.html', error='Email not found!')
+        except Exception as e:
+            return render_template('forgot_password.html', error=f'Error: {str(e)}')
+    return render_template('forgot_password.html')
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    email = session.get('reset_email')
+    if not email:
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        otp = request.form.get('otp').strip()
+        new_password = request.form.get('new_password')
+        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT otp_code, otp_expiry FROM public.users WHERE email = %s", (email,))
+            user = cursor.fetchone()
+
+            if user:
+                db_otp = str(user[0]).strip()
+                expiry = user[1]
+
+                if db_otp == otp and datetime.now() < expiry.replace(tzinfo=None):
+                    hashed = generate_password_hash(new_password)
+                    cursor.execute("UPDATE public.users SET password = %s WHERE email = %s",
+                                 (hashed, email))
+                    conn.commit()
+                    session.pop('reset_email', None)
+                    cursor.close()
+                    conn.close()
+                    return redirect(url_for('login'))
+                else:
+                    return render_template('reset_password.html', error='Invalid or expired OTP!')
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            return render_template('reset_password.html', error=f'Error: {str(e)}')
+    
+    return render_template('reset_password.html')
 
 @app.route('/payment')
 def payment():

@@ -229,7 +229,7 @@ def dashboard():
 @app.route('/admin')
 def admin():
 
-    if not session.get('is_admin'):
+   if not session.get('is_admin'):
     return redirect(url_for('login'))
 
     conn = get_db_connection()

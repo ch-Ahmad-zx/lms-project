@@ -280,7 +280,7 @@ def admin():
     error = None
     if request.method == 'POST':
         password = request.form.get('password')
-        if password == 'admin123':
+        if password == 'ahmad123':
             session['is_admin'] = True
         else:
             error = 'Wrong password!'

@@ -216,7 +216,7 @@ def login():
                     session['email'] = u_email
                     session['is_admin'] = False
 
-                    return redirect(url_for('dashboard'))
+                    return redirect(url_for("payment"))
 
                 else:
                     return render_template(
@@ -239,33 +239,54 @@ def login():
                 conn.close()
 
     return render_template('login.html')
+@app.route('/subscription')
+def subscription():
+
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    return render_template('subscription.html')
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user_id = session['user_id']
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
+    conn = None
     try:
-        cursor.execute('SELECT license_key, expiry_date FROM users WHERE id = %s', (user_id,))
-        user_data = cursor.fetchone()
+        conn = get_db_connection()
+        cursor = conn.cursor()
         
+        cursor.execute('SELECT license_key, expiry_date FROM public.users WHERE id = %s', (user_id,))
+        user_data = cursor.fetchone()
+
         if user_data:
+            # Agar license key nahi hai toh subscription par bhejein
+            if not user_data[0]:
+                return redirect(url_for('subscription'))
+            
             return render_template('dashboard.html', license_key=user_data[0], expiry_date=user_data[1])
-        return "User data not found."
+        else:
+            return "User data not found."
+            
     except Exception as e:
         return f"Dashboard Error: {str(e)}"
     finally:
-        cursor.close()
-        conn.close()
-
-@app.route('/admin')
+        if conn:
+            cursor.close()
+            conn.close()
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == 'admin123':
+            session['is_admin'] = True
+        else:
+            error = 'Wrong password!'
+    
     if not session.get('is_admin'):
-        return redirect(url_for('login'))
+        return render_template('admin_login.html', error=error)
 
     conn = get_db_connection()
     cursor = conn.cursor()

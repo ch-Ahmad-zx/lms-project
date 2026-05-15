@@ -157,47 +157,82 @@ def verify_otp():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
     if request.method == 'POST':
+
         email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
-# 1. ADMIN LOGIN CHECK (Manual Check)
+        # =========================
+        # ADMIN LOGIN
+        # =========================
+
         if email == "admin@gmail.com" and password == "admin123":
+
+            session.clear()
+
             session.permanent = True
             session['user_id'] = 0
             session['email'] = email
-            session['is_admin'] = True  # Dashboard kholne ke liye ye zaroori hai
-            session.modified = True
-            return redirect('/admin')
+            session['is_admin'] = True
 
-        # 2. DATABASE USER LOGIN
+            return redirect(url_for('admin'))
+
+        # =========================
+        # NORMAL USER LOGIN
+        # =========================
+
         try:
+
             conn = get_db_connection()
             cursor = conn.cursor()
 
-            # Database se user fetch karein
-            cursor.execute('SELECT id, email, password, is_verified FROM public.users WHERE email = %s', (email,))
+            cursor.execute("""
+                SELECT id, email, password, is_verified
+                FROM public.users
+                WHERE email = %s
+            """, (email,))
+
             user = cursor.fetchone()
-            
+
             if user:
+
                 u_id, u_email, u_hashed_password, u_verified = user
-                
+
+                # Email verification check
                 if not u_verified:
-                    return render_template('login.html', error="Please verify your email first!")
-                
-                # Password matching
+                    return render_template(
+                        'login.html',
+                        error="Please verify your email first!"
+                    )
+
+                # Password check
                 if check_password_hash(u_hashed_password, password):
+
+                    session.clear()
+
+                    session.permanent = True
                     session['user_id'] = u_id
                     session['email'] = u_email
-                    session['is_admin'] = False # Normal user admin nahi hota
-                    return redirect(url_for('dashboard')) # Ya jo bhi aapka home page hai
+                    session['is_admin'] = False
+
+                    return redirect(url_for('dashboard'))
+
                 else:
-                    return render_template('login.html', error="Invalid email or password.")
+                    return render_template(
+                        'login.html',
+                        error="Invalid email or password."
+                    )
+
             else:
-                return render_template('login.html', error="User not found.")
-                
+                return render_template(
+                    'login.html',
+                    error="User not found."
+                )
+
         except Exception as e:
             return f"Login Error: {str(e)}"
+
         finally:
             if conn:
                 cursor.close()
@@ -229,8 +264,8 @@ def dashboard():
 @app.route('/admin')
 def admin():
 
-   if not session.get('is_admin'):
-    return redirect(url_for('login'))
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()

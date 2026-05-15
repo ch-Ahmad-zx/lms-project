@@ -350,7 +350,11 @@ def process_payment():
         mail.send(msg)
     except Exception as e:
         print(f"Error sending email: {e}")
-    return render_template('success.html', key=license_key)
+    return redirect(url_for('success', key=license_key))
+@app.route('/success')
+def success():
+    key = request.args.get('key')
+    return render_template('success.html', key=key)
 
 @app.route('/watch_movies', methods=['GET', 'POST'])
 def watch_movies():

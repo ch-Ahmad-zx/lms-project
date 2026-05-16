@@ -49,6 +49,38 @@
                 <a href="/logout" class="btn btn-outline-danger btn-sm">Logout Admin</a>
             </div>
             <hr>
+            <!-- Dashboard Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div style="background:linear-gradient(135deg,#1e3a5f,#2d1b69); border-radius:15px; padding:20px; text-align:center; color:white;">
+            <h3 style="font-size:2rem; font-weight:700;">{{ total_keys }}</h3>
+            <p style="color:#aaa; margin:0;">Total Keys</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div style="background:linear-gradient(135deg,#065f46,#047857); border-radius:15px; padding:20px; text-align:center; color:white;">
+            <h3 style="font-size:2rem; font-weight:700;">{{ active_keys }}</h3>
+            <p style="color:#aaa; margin:0;">Active Keys</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div style="background:linear-gradient(135deg,#7c2d12,#b45309); border-radius:15px; padding:20px; text-align:center; color:white;">
+            <h3 style="font-size:2rem; font-weight:700;">{{ expired_keys }}</h3>
+            <p style="color:#aaa; margin:0;">Expired Keys</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9); border-radius:15px; padding:20px; text-align:center; color:white;">
+            <h3 style="font-size:2rem; font-weight:700;">{{ total_users }}</h3>
+            <p style="color:#aaa; margin:0;">Total Users</p>
+        </div>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="mb-3">
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search by name, email, or plan..." class="form-control">
+</div>
             <table class="table table-hover mt-4">
                 <thead class="table-dark">
                     <tr>
@@ -97,6 +129,14 @@ function showDeleteModal(userId) {
 }
 function closeModal() {
     document.getElementById('deleteModal').style.display = 'none';
+}
+function searchTable() {
+    let input = document.getElementById('searchInput').value.toLowerCase();
+    let rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        let text = row.innerText.toLowerCase();
+        row.style.display = text.includes(input) ? '' : 'none';
+    });
 }
 </script>
 

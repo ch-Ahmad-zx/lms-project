@@ -300,11 +300,21 @@ def admin():
     """)
 
     all_users = cursor.fetchall()
+    # Dashboard counts
+    total_keys = len(all_users)
+    active_keys = sum(1 for u in all_users if u[5] and u[5] > datetime.now())
+    expired_keys = sum(1 for u in all_users if u[5] and u[5] <= datetime.now())
+    total_users = total_keys
 
     cursor.close()
     conn.close()
 
-    return render_template('admin.html', users=all_users)
+    return render_template('admin.html', users=all_users,
+        total_keys=total_keys,
+        active_keys=active_keys,
+        expired_keys=expired_keys,
+        total_users=total_users)
+
 @app.route('/delete_user/<int:user_id>')
 def delete_user(user_id):
     # Security check: sirf admin hi delete kar sakay

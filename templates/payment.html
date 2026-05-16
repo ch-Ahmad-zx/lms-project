@@ -14,7 +14,7 @@
                 <span class="badge bg-primary text-white">{{ plan }}</span>
             </div>
 
-           <form action="/process_payment" method="POST" onsubmit="return processPayment()">
+           <form action="/process_payment" method="POST" id="paymentForm">
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Card Number</label>
                     <div class="input-group">
@@ -37,12 +37,8 @@
                        <input type="number" name="cvv" class="form-control" placeholder="***" min="100" max="999" required>
                     </div>
                 </div>
-<button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" style="transition: all 0.3s;">
-    <span id="btnText">🔒 Pay Now</span>
-    <span id="btnSpinner" style="display:none;">
-        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-        Processing Payment...
-    </span>
+<button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
+    🔒 Pay Now
 </button>
             </form>
 
@@ -52,19 +48,6 @@
         </div>
     </div>
     </div>
- function processPayment(e) {
-    document.getElementById('btnText').style.display = 'none';
-    document.getElementById('btnSpinner').style.display = 'inline-flex';
-    document.getElementById('btnSpinner').style.alignItems = 'center';
-    document.getElementById('payBtn').style.background = 'linear-gradient(90deg, #1a237e, #4a148c)';
-    document.getElementById('payBtn').disabled = true;
-    
-    setTimeout(function() {
-        document.getElementById('payBtn').closest('form').submit();
-    }, 7000);
-    
-    return false;
-}
 
 <script>
     const cardInput = document.getElementById('cardNumber');
@@ -73,8 +56,15 @@
     cardInput.addEventListener('input', function (e) {
         let value = e.target.value.replace(/\D/g, ''); 
         let formattedValue = value.match(/.{1,4}/g)?.join(' - ') || '';
-        e.target.value = formattedValue;
+        e.target.value = formattedValue;});
 
+    function processPayment() {
+        document.getElementById('payBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        document.getElementById('payBtn').disabled = true;
+        setTimeout(function() {
+            document.getElementById('paymentForm').submit();
+        }, 7000);
+    }
         // Visa/Master Detection
         if (value.startsWith('4')) {
             cardLogo.innerHTML = '<span class="text-primary fw-bold" style="font-size: 10px;">VISA</span>';

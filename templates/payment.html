@@ -11,10 +11,10 @@
         <div class="card-body px-4">
             <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded">
                 <span class="small fw-bold">Selected Plan:</span>
-                <span class="badge bg-primary text-white">{{ session.get('selected_plan') }}</span>
+                <span class="badge bg-primary text-white">{{ plan }}</span>
             </div>
 
-            <form action="/process_payment" method="POST">
+            <form action="/process_payment" method="POST"> onsubmit="processPayment()"
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Card Number</label>
                     <div class="input-group">

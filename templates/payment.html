@@ -18,8 +18,9 @@
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Card Number</label>
                     <div class="input-group">
-                        <input type="text" id="cardNumber" name="card_number" class="form-control" 
-                               placeholder="0000 - 0000 - 0000 - 0000" maxlength="25" required>
+                      <input type="text" id="cardNumber" name="card_number" class="form-control"
+    placeholder="0000 - 0000 - 0000 - 0000" maxlength="25" 
+    autocomplete="off" required>
                         <span class="input-group-text bg-white" id="cardLogo">
                             <i class="bi bi-credit-card"></i>
                         </span>
@@ -37,9 +38,9 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">
-                    Pay Now
-                </button>
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
+    Pay Now
+</button>
             </form>
 
             <div class="text-center mt-4">
@@ -48,6 +49,11 @@
         </div>
     </div>
     </div>
+    function processPayment() {
+    const btn = document.getElementById('payBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+    btn.disabled = true;
+}
 
 <script>
     const cardInput = document.getElementById('cardNumber');

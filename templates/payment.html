@@ -36,11 +36,11 @@
                 <div class="row">
                     <div class="col-7 mb-3">
                         <label class="form-label small fw-bold">Expiry</label>
-                      <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                     <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
                     </div>
                     <div class="col-5 mb-3">
                         <label class="form-label small fw-bold">CVV</label>
-<input type="number" name="cvv" class="form-control" placeholder="***" min="100" max="999" required>
+<input type="text" name="cvv" class="form-control" placeholder="CVV" maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)" required>
                     </div>
                 </div>
 <button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
@@ -73,13 +73,17 @@
         }
     });
 
-    document.getElementById('expiry').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        if (value.length >= 2) {
-            value = value.substring(0,2) + '/' + value.substring(2);
-        }
-        e.target.value = value;
-    });
+   document.getElementById('expiry').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 4) value = value.slice(0, 4);
+    if (value.length >= 2) {
+        let month = parseInt(value.substring(0, 2));
+        if (month > 12) value = '12' + value.substring(2);
+        if (month < 1 && value.length >= 2) value = '01' + value.substring(2);
+        value = value.substring(0, 2) + '/' + value.substring(2);
+    }
+    e.target.value = value;
+});
 function processPayment() {
     var btn = document.getElementById('payBtn');
     btn.innerHTML = '<div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>';

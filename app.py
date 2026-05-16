@@ -363,6 +363,9 @@ def enable_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 @app.route('/admin_logout')
 def admin_logout():
     session.pop('is_admin', None)

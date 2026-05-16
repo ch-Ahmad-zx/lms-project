@@ -53,34 +53,36 @@
     const cardInput = document.getElementById('cardNumber');
     const cardLogo = document.getElementById('cardLogo');
 
-    cardInput.addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, ''); 
-        let formattedValue = value.match(/.{1,4}/g)?.join(' - ') || '';
-        e.target.value = formattedValue;});
+    cardInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        let formatted = value.match(/.{1,4}/g)?.join(' - ') || '';
+        e.target.value = formatted;
+
+        if (value.startsWith('4')) {
+            cardLogo.innerHTML = '<span class="text-primary fw-bold" style="font-size:10px;">VISA</span>';
+        } else if (value.startsWith('5')) {
+            cardLogo.innerHTML = '<span class="text-danger fw-bold" style="font-size:10px;">MASTER</span>';
+        } else {
+            cardLogo.innerHTML = '<i class="bi bi-credit-card"></i>';
+        }
+    });
+
+    document.getElementById('expiry').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length >= 2) {
+            value = value.substring(0,2) + '/' + value.substring(2);
+        }
+        e.target.value = value;
+    });
 
     function processPayment() {
-        document.getElementById('payBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-        document.getElementById('payBtn').disabled = true;
+        var btn = document.getElementById('payBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        btn.disabled = true;
         setTimeout(function() {
             document.getElementById('paymentForm').submit();
         }, 7000);
     }
-        // Visa/Master Detection
-        if (value.startsWith('4')) {
-            cardLogo.innerHTML = '<span class="text-primary fw-bold" style="font-size: 10px;">VISA</span>';
-        } else if (value.startsWith('5')) {
-            cardLogo.innerHTML = '<span class="text-danger fw-bold" style="font-size: 10px;">MASTER</span>';
-        } else {
-            cardLogo.innerHTML = '<i class="bi bi-credit-card"></i>';
-        }
-        document.getElementById('expiry').addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-        value = value.substring(0,2) + '/' + value.substring(2);
-    }
-    e.target.value = value;
-});
-    });
 </script>
 
 {% endblock %}

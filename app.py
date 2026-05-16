@@ -345,6 +345,18 @@ def disable_user(user_id):
     cursor.close()
     conn.close()
     return redirect(url_for('admin'))
+@app.route('/enable_user/<int:user_id>')
+def enable_user(user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for('login'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE public.users SET expiry_date = %s WHERE id = %s", 
+                   (datetime.now() + timedelta(days=30), user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect(url_for('admin'))
 
 @app.route('/logout')
 def logout():

@@ -54,7 +54,7 @@
                 <p class="section-title">🛠️ Tools</p>
                 <ul class="list-unstyled">
                     <li class="mb-3">🔑 License Key: <code style="color:#38bdf8;">{{ license_key }}</code></li>
-                    <li class="mb-3">📅 Expiry: <span style="color:#facc15;">{{ expiry_date }}</span></li>
+<span style="color:#facc15;">{{ expiry_date.strftime('%B %d, %Y') if expiry_date else 'N/A' }}</span>
                     <li class="mb-3">✅ Status: <span class="badge-active">ACTIVE</span></li>
                 </ul>
             </div>

@@ -283,6 +283,7 @@ def admin():
         password = request.form.get('password')
         if password == 'ahmad123':
             session['is_admin'] = True
+            return redirect(url_for('admin'))
         else:
             error = 'Wrong password!'
     

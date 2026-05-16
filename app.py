@@ -436,6 +436,18 @@ def process_payment():
 def success():
     key = request.args.get('key')
     return render_template('success.html', key=key)
+@app.route('/resources')
+def resources():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT license_key, expiry_date FROM public.users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return render_template('resources.html', license_key=user_data[0], expiry_date=user_data[1])
 
 @app.route('/watch_movies', methods=['GET', 'POST'])
 def watch_movies():

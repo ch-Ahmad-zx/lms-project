@@ -89,6 +89,7 @@
                         <th>Email</th>
                         <th>Plan</th>
                         <th>Action</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,8 +99,12 @@
                         <td>{{ user[1] }}</td>
                         <td>{{ user[2] }}</td>
                         <td><span class="badge bg-primary">{{ user[4] }}</span></td>
+                        <td>{{ user[2] }}</td>
+<td><span class="badge bg-primary">{{ user[4] }}</span></td>
+<td><span class="badge bg-success">Active</span></td>  <!-- ye add karo -->
                         <td>
 <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
+<a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
                         </td>
                     </tr>
                     {% endfor %}

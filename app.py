@@ -497,7 +497,7 @@ Your License Key:
 Thank you for using LMS Portal.
 """
 
-        mail.send(msg)
+        #mail.send(msg)
 
     except Exception as e:
 

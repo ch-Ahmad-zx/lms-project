@@ -1,3 +1,17 @@
+{% if not verified %}
+<div class="text-center mb-4">
+    <h4>🔐 Enter Your License Key</h4>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+        <input type="text" name="license_key" class="form-control mb-3" placeholder="Enter License Key" required>
+        <button type="submit" class="btn btn-primary">Verify & Access</button>
+    </form>
+</div>
+{% else %}
+<!-- baaki sara resources content yahan -->
+{% endif %}
 <!DOCTYPE html>
 <html lang="en">
 <head>

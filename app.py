@@ -350,6 +350,10 @@ def disable_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.route('/admin_logout')
+def admin_logout():
+    session.pop('is_admin', None)
+    return redirect(url_for('admin'))
 @app.route('/google117b5501cbc5a1a8.html')
 def google_verify():
     return 'google-site-verification: google117b5501cbc5a1a8.html'
@@ -458,10 +462,11 @@ def process_payment():
 def success():
     key = request.args.get('key')
     return render_template('success.html', key=key)
-@app.route('/resources')
+@app.route('/resources', methods=['GET', 'POST'])
 def resources():
     if 'user_id' not in session:
         return redirect(url_for('login'))
+    
     user_id = session['user_id']
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -469,7 +474,22 @@ def resources():
     user_data = cursor.fetchone()
     cursor.close()
     conn.close()
-    return render_template('resources.html', license_key=user_data[0], expiry_date=user_data[1])
+    
+    error = None
+    verified = False
+    
+    if request.method == 'POST':
+        entered_key = request.form.get('license_key')
+        if entered_key == user_data[0]:
+            verified = True
+        else:
+            error = 'Invalid License Key!'
+    
+    return render_template('resources.html', 
+        license_key=user_data[0], 
+        expiry_date=user_data[1],
+        verified=verified,
+        error=error)
 
 @app.route('/watch_movies', methods=['GET', 'POST'])
 def watch_movies():

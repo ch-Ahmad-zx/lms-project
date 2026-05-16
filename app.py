@@ -278,6 +278,7 @@ def dashboard():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     error = None
+    session.pop('is_admin', None)
     if request.method == 'POST':
         password = request.form.get('password')
         if password == 'ahmad123':

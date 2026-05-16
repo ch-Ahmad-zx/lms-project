@@ -92,6 +92,7 @@ def register():
             mail.send(msg)
 
             session['otp_email'] = email
+            session['selected_plan'] = plan
             return redirect(url_for('verify_otp'))
 
         except Exception as e:

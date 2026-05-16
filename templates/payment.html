@@ -38,8 +38,11 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
-    Pay Now
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn">
+    <span id="btnText">🔒 Pay Now</span>
+    <span id="btnSpinner" style="display:none;">
+        <span class="spinner-border spinner-border-sm"></span> Processing Payment...
+    </span>
 </button>
             </form>
 
@@ -49,10 +52,11 @@
         </div>
     </div>
     </div>
-    function processPayment() {
-    const btn = document.getElementById('payBtn');
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
-    btn.disabled = true;
+   function processPayment() {
+    document.getElementById('btnText').style.display = 'none';
+    document.getElementById('btnSpinner').style.display = 'inline';
+    document.getElementById('payBtn').style.background = 'linear-gradient(90deg, #1e3a5f, #2d1b69)';
+    document.getElementById('payBtn').disabled = true;
 }
 
 <script>

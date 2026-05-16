@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
 <div class="container mt-5">
     <div class="card shadow-sm border-0 mx-auto" style="max-width: 450px;"> 
         <div class="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
@@ -30,11 +36,11 @@
                 <div class="row">
                     <div class="col-7 mb-3">
                         <label class="form-label small fw-bold">Expiry</label>
-                       <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" pattern="(0[1-9]|1[0-2])\/([0-9]{2})" title="Expiry must be in MM/YY format" required>
+                      <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
                     </div>
                     <div class="col-5 mb-3">
                         <label class="form-label small fw-bold">CVV</label>
-                       <input type="number" name="cvv" class="form-control" placeholder="***" min="100" max="999" required>
+<input type="number" name="cvv" class="form-control" placeholder="***" min="100" max="999" required>
                     </div>
                 </div>
 <button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
@@ -74,15 +80,14 @@
         }
         e.target.value = value;
     });
-
-    function processPayment() {
-        var btn = document.getElementById('payBtn');
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
-        btn.disabled = true;
-        setTimeout(function() {
-            document.getElementById('paymentForm').submit();
-        }, 7000);
-    }
+function processPayment() {
+    var btn = document.getElementById('payBtn');
+    btn.innerHTML = '<div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>';
+    btn.disabled = true;
+    setTimeout(function() {
+        document.getElementById('paymentForm').submit();
+    }, 7000);
+}
 </script>
 
 {% endblock %}

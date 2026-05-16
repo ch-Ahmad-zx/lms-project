@@ -457,22 +457,54 @@ def payment():
 
 @app.route('/process_payment', methods=['POST'])
 def process_payment():
+
     try:
+
         user_email = request.form.get('email')
         user_id = session.get('user_id')
+
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT license_key FROM users WHERE id = %s', (user_id,))
+
+        cursor.execute(
+            'SELECT license_key FROM users WHERE id = %s',
+            (user_id,)
+        )
+
         user_data = cursor.fetchone()
-        conn.close()
+
         license_key = user_data[0] if user_data else 'N/A'
-        msg = flask_mail.Message('License Key Confirmation',
-                        sender=app.config['MAIL_USERNAME'],
-                        recipients=[user_email])
-        msg.body = f"Congratulations! Your payment was successful. Your License Key is: {license_key}"
+
+        cursor.close()
+        conn.close()
+
+        # EMAIL SEND
+
+        msg = flask_mail.Message(
+            'License Key Confirmation',
+            sender=app.config['MAIL_USERNAME'],
+            recipients=[user_email]
+        )
+
+        msg.body = f"""
+Congratulations!
+
+Your payment was successful.
+
+Your License Key:
+{license_key}
+
+Thank you for using LMS Portal.
+"""
+
         mail.send(msg)
+
     except Exception as e:
+
         print(f"Error sending email: {e}")
+
+        return f"Error: {str(e)}"
+
     return redirect(url_for('success', key=license_key))
 @app.route('/success')
 def success():

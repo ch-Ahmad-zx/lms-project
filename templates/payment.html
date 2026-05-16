@@ -1,109 +1,318 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <style>
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.payment-card{
+    max-width: 460px;
+    margin:auto;
+    border-radius:20px;
+    overflow:hidden;
+}
+
+.card-logo{
+    font-weight:bold;
+    font-size:15px;
+}
+
 </style>
-<div class="container mt-5">
-    <div class="card shadow-sm border-0 mx-auto" style="max-width: 450px;"> 
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-0 text-center">
-            <h5 class="fw-bold"><i class="bi bi-shield-lock-fill text-success"></i> Secure Payment</h5>
-            <p class="text-muted small">Enter your card details to activate your plan</p>
+
+<div class="container mt-5 mb-5">
+
+    <div class="card shadow-lg border-0 payment-card">
+
+        <div class="card-header bg-dark text-white text-center py-4">
+
+            <h3 class="fw-bold">
+                💳 Secure Payment
+            </h3>
+
+            <p class="mb-0">
+                Enter your payment details
+            </p>
+
         </div>
-        
-        <div class="card-body px-4">
-            <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded">
-                <span class="small fw-bold">Selected Plan:</span>
-                <span class="badge bg-primary text-white">{{ plan }}</span>
+
+        <div class="card-body p-4">
+
+            <div class="alert alert-primary text-center fw-bold">
+                Selected Plan:
+                {{ plan }}
             </div>
 
-           <form action="/process_payment" method="POST" id="paymentForm">
+            <form action="/process_payment" method="POST" id="paymentForm">
+
+                <!-- CARD NUMBER -->
+
                 <div class="mb-3">
-                    <label class="form-label small fw-bold">Card Number</label>
+
+                    <label class="form-label fw-bold">
+                        Card Number
+                    </label>
+
                     <div class="input-group">
-                      <input type="text" id="cardNumber" name="card_number" class="form-control"
-    placeholder="0000 - 0000 - 0000 - 0000" maxlength="25" 
-    autocomplete="off" required>
-                        <span class="input-group-text bg-white" id="cardLogo">
-                            <i class="bi bi-credit-card"></i>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="cardNumber"
+                            name="card_number"
+                            placeholder="0000 0000 0000 0000"
+                            maxlength="19"
+                            required
+                            autocomplete="off"
+                        >
+
+                        <span class="input-group-text bg-white">
+
+                            <span id="cardLogo" class="card-logo">
+                                CARD
+                            </span>
+
                         </span>
+
                     </div>
+
                 </div>
 
+                <!-- EXPIRY + CVV -->
+
                 <div class="row">
-                    <div class="col-7 mb-3">
-                        <label class="form-label small fw-bold">Expiry</label>
-                     <input type="text" name="expiry" id="expiry" class="form-control" placeholder="MM/YY" maxlength="5" required>
+
+                    <div class="col-6 mb-3">
+
+                        <label class="form-label fw-bold">
+                            Expiry
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="expiry"
+                            name="expiry"
+                            placeholder="MM/YY"
+                            maxlength="5"
+                            required
+                        >
+
                     </div>
-                    <div class="col-5 mb-3">
-                        <label class="form-label small fw-bold">CVV</label>
-<input type="text" name="cvv" class="form-control" placeholder="CVV" maxlength="3" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)" required>
+
+                    <div class="col-6 mb-3">
+
+                        <label class="form-label fw-bold">
+                            CVV
+                        </label>
+
+                        <input
+                            type="password"
+                            class="form-control"
+                            id="cvv"
+                            name="cvv"
+                            placeholder="123"
+                            maxlength="3"
+                            required
+                        >
+
                     </div>
+
                 </div>
-<button type="button" class="btn btn-primary w-100 fw-bold py-2 mt-2" id="payBtn" onclick="processPayment()">
-    🔒 Pay Now
-</button>
+
+                <!-- BUTTON -->
+
+                <button
+                    type="button"
+                    class="btn btn-primary w-100 py-2 fw-bold"
+                    id="payBtn"
+                    onclick="processPayment()"
+                >
+
+                    Pay Now
+
+                </button>
+
             </form>
 
             <div class="text-center mt-4">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal_Visa_Mastercard_Banner.png" width="160" style="filter: grayscale(100%); opacity: 0.6;">
+
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
+                    width="60"
+                >
+
+                <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
+                    width="60"
+                    class="ms-3"
+                >
+
             </div>
+
         </div>
+
     </div>
-    </div>
+
+</div>
 
 <script>
-    const cardInput = document.getElementById('cardNumber');
-    const cardLogo = document.getElementById('cardLogo');
 
-    cardInput.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        let formatted = value.match(/.{1,4}/g)?.join(' - ') || '';
-        e.target.value = formatted;
+const cardInput = document.getElementById("cardNumber");
+const cardLogo = document.getElementById("cardLogo");
 
-        if (value.startsWith('4')) {
-            cardLogo.innerHTML = '<span class="text-primary fw-bold" style="font-size:10px;">VISA</span>';
-        } else if (value.startsWith('5')) {
-            cardLogo.innerHTML = '<span class="text-danger fw-bold" style="font-size:10px;">MASTER</span>';
-        } else {
-            cardLogo.innerHTML = '<i class="bi bi-credit-card"></i>';
-        }
-    });
+cardInput.addEventListener("input", function(e){
 
-   document.getElementById('expiry').addEventListener('input', function(e) {
     let value = e.target.value.replace(/\D/g, '');
-    if (value.length > 4) value = value.slice(0, 4);
-    if (value.length >= 2) {
-        let month = parseInt(value.substring(0, 2));
-        if (month > 12) value = '12' + value.substring(2);
-        if (month < 1 && value.length >= 2) value = '01' + value.substring(2);
-        value = value.substring(0, 2) + '/' + value.substring(2);
+
+    value = value.substring(0,16);
+
+    let formatted = value.match(/.{1,4}/g);
+
+    if(formatted){
+        e.target.value = formatted.join(' ');
     }
-    e.target.value = value;
+
+    // CARD TYPE DETECTION
+
+    if(value.startsWith('4')){
+
+        cardLogo.innerHTML =
+        '<span class="text-primary">VISA</span>';
+
+    }
+
+    else if(value.startsWith('5')){
+
+        cardLogo.innerHTML =
+        '<span class="text-danger">MASTERCARD</span>';
+
+    }
+
+    else{
+
+        cardLogo.innerHTML = 'CARD';
+
+    }
+
 });
-function processPayment() {
-    let expiry = document.getElementById('expiry').value;
-    let parts = expiry.split('/');
-    let year = parseInt('20' + parts[1]);
-    let month = parseInt(parts[0]);
-    let now = new Date();
-    
-    if (!parts[1] || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
-        alert('Invalid or expired card! Please enter a valid expiry date.');
-        return;
+
+
+// EXPIRY MM/YY FORMAT
+
+document.getElementById('expiry').addEventListener('input', function(e){
+
+    let value = e.target.value.replace(/\D/g,'');
+
+    if(value.length > 4){
+        value = value.substring(0,4);
     }
-    
-    var btn = document.getElementById('payBtn');
-    btn.innerHTML = '<div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>';
+
+    if(value.length >= 2){
+
+        let month = value.substring(0,2);
+
+        if(parseInt(month) > 12){
+            month = '12';
+        }
+
+        value = month + '/' + value.substring(2);
+
+    }
+
+    e.target.value = value;
+
+});
+
+
+// CVV ONLY 3 DIGITS
+
+document.getElementById('cvv').addEventListener('input', function(e){
+
+    e.target.value =
+    e.target.value.replace(/\D/g,'').substring(0,3);
+
+});
+
+
+// PAYMENT FUNCTION
+
+function processPayment(){
+
+    let card =
+    document.getElementById('cardNumber').value.replace(/\s/g,'');
+
+    let expiry =
+    document.getElementById('expiry').value;
+
+    let cvv =
+    document.getElementById('cvv').value;
+
+    // CARD VALIDATION
+
+    if(card.length !== 16){
+
+        alert("Card number must be 16 digits");
+        return;
+
+    }
+
+    // VISA / MASTER CHECK
+
+    if(!(card.startsWith('4') || card.startsWith('5'))){
+
+        alert("Only Visa or Mastercard allowed");
+        return;
+
+    }
+
+    // EXPIRY VALIDATION
+
+    if(expiry.length !== 5){
+
+        alert("Invalid expiry date");
+        return;
+
+    }
+
+    // CVV VALIDATION
+
+    if(cvv.length !== 3){
+
+        alert("CVV must be 3 digits");
+        return;
+
+    }
+
+    // LOADING
+
+    let btn = document.getElementById('payBtn');
+
     btn.disabled = true;
-    setTimeout(function() {
+
+    btn.innerHTML = `
+        <div style="
+            width:22px;
+            height:22px;
+            border:3px solid rgba(255,255,255,0.3);
+            border-top:3px solid white;
+            border-radius:50%;
+            animation: spin 1s linear infinite;
+            margin:auto;
+        "></div>
+    `;
+
+    setTimeout(function(){
+
         document.getElementById('paymentForm').submit();
-    }, 7000);
+
+    }, 2000);
+
 }
-}
+
 </script>
 
 {% endblock %}

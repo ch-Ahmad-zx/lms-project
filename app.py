@@ -278,7 +278,6 @@ def dashboard():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     error = None
-    session.pop('is_admin', None)
     if request.method == 'POST':
         password = request.form.get('password')
         if password == 'ahmad123':
@@ -286,10 +285,11 @@ def admin():
             return redirect(url_for('admin'))
         else:
             error = 'Wrong password!'
+            session.pop('is_admin', None)
     
     if not session.get('is_admin'):
         return render_template('admin_login.html', error=error)
-
+       
     conn = get_db_connection()
     cursor = conn.cursor()
 

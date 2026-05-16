@@ -94,19 +94,17 @@
                 </thead>
                 <tbody>
                     {% for user in users %}
-                    <tr>
-                        <td>{{ user[0] }}</td>
-                        <td>{{ user[1] }}</td>
-                        <td>{{ user[2] }}</td>
-                        <td><span class="badge bg-primary">{{ user[4] }}</span></td>
-                        <td>{{ user[2] }}</td>
-<td><span class="badge bg-primary">{{ user[4] }}</span></td>
-<td><span class="badge bg-success">Active</span></td>  <!-- ye add karo -->
-                        <td>
-<button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
-<a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
-                        </td>
-                    </tr>
+                   <tr>
+    <td>{{ user[0] }}</td>
+    <td>{{ user[1] }}</td>
+    <td>{{ user[2] }}</td>
+    <td><span class="badge bg-primary">{{ user[4] }}</span></td>
+    <td><span class="badge bg-success">Active</span></td>
+    <td>
+        <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
+        <a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
+    </td>
+</tr>
                     {% endfor %}
                 </tbody>
             </table>

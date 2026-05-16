@@ -326,6 +326,9 @@ def delete_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.route('/google117b5501cbc5a1a8.html')
+def google_verify():
+    return 'google-site-verification: google117b5501cbc5a1a8.html'
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':

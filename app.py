@@ -502,9 +502,8 @@ Thank you for using LMS Portal.
     except Exception as e:
 
         print(f"Error sending email: {e}")
-
-        return f"Error: {str(e)}"
-
+    return redirect(url_for('success', key='N/A'))
+ 
     return redirect(url_for('success', key=license_key))
 @app.route('/success')
 def success():

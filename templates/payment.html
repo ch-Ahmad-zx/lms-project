@@ -90,7 +90,7 @@
                     oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,3)" required>
             </div>
         </div>
-
+<div id="errorMsg" style="display:none; background:#ff4444; color:white; padding:10px 15px; border-radius:8px; margin-bottom:10px; font-size:14px; text-align:center;"></div>
         <button type="button" class="pay-btn" id="payBtn" onclick="processPayment()">
             🔒 Pay Now
         </button>
@@ -132,24 +132,27 @@
     });
 
     function processPayment() {
-        let expiry = document.getElementById('expiry').value;
-        let parts = expiry.split('/');
-        let year = parseInt('20' + parts[1]);
-        let month = parseInt(parts[0]);
-        let now = new Date();
+    let expiry = document.getElementById('expiry').value;
+    let parts = expiry.split('/');
+    let year = parseInt('20' + parts[1]);
+    let month = parseInt(parts[0]);
+    let now = new Date();
 
-        if (!parts[1] || year < now.getFullYear() || 
-            (year === now.getFullYear() && month < now.getMonth() + 1)) {
-            alert('Invalid or expired card date!');
-            return;
-        }
+    if (!parts[1] || year < now.getFullYear() || 
+        (year === now.getFullYear() && month < now.getMonth() + 1)) {
+        document.getElementById('errorMsg').style.display = 'block';
+        document.getElementById('errorMsg').innerHTML = '❌ Invalid or expired card date!';
+        return;
+    }
 
-        var btn = document.getElementById('payBtn');
-        btn.innerHTML = '<div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>';
-        btn.disabled = true;
-        setTimeout(function() {
-            document.getElementById('paymentForm').submit();
-        }, 7000);
+    document.getElementById('errorMsg').style.display = 'none';
+    var btn = document.getElementById('payBtn');
+    btn.innerHTML = '<div style="width:22px;height:22px;border:3px solid rgba(255,255,255,0.3);border-top:3px solid white;border-radius:50%;animation:spin 1s linear infinite;margin:auto;"></div>';
+    btn.disabled = true;
+    setTimeout(function() {
+        document.getElementById('paymentForm').submit();
+    }, 7000);
+}
     }
 </script>
 {% endblock %}

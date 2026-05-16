@@ -476,14 +476,15 @@ def resources():
     conn.close()
     
     error = None
-    verified = False
+    verified = session.get('key_verified', False)
     
     if request.method == 'POST':
         entered_key = request.form.get('license_key')
         if entered_key == user_data[0]:
+            session['key_verified'] = True
             verified = True
         else:
-            error = 'Invalid License Key!'
+            error = 'Invalid License Key! Please try again.'
     
     return render_template('resources.html', 
         license_key=user_data[0], 

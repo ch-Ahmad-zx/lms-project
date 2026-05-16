@@ -101,8 +101,9 @@
     <td><span class="badge bg-primary">{{ user[4] }}</span></td>
     <td><span class="badge bg-success">Active</span></td>
     <td>
-        <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
-        <a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
+       <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
+<a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
+<a href="/enable_user/{{ user[0] }}" class="btn btn-success btn-sm ms-1">Enable</a>
     </td>
 </tr>
                     {% endfor %}

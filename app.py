@@ -523,12 +523,11 @@ def resources():
     conn.close()
     
     error = None
-    verified = session.get('key_verified', False)
+    verified = False  # hamesha False rakho — session se mat lo
     
     if request.method == 'POST':
         entered_key = request.form.get('license_key')
         if entered_key == user_data[0]:
-            session['key_verified'] = True
             verified = True
         else:
             error = 'Invalid License Key! Please try again.'

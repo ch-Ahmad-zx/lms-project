@@ -307,7 +307,8 @@ def admin():
         active_keys=active_keys,
         expired_keys=expired_keys,
         total_users=total_users,
-        revenue=revenue)
+        revenue=revenue,
+        now=now)
 @app.route('/delete_user/<int:user_id>')
 def delete_user(user_id):
     # Security check: sirf admin hi delete kar sakay

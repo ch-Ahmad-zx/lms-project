@@ -118,7 +118,7 @@
                         <td><span class="badge bg-primary">{{ user[4] }}</span></td>
                         <td>{{ user[5] }}</td>
                         <td>
-{% if user[5] and user[5] > datetime.now() %}
+{% if user[5] and user[5].replace(tzinfo=none) > now %}
     <span class="badge bg-success">Active</span>
 {% else %}
     <span class="badge bg-danger">Expired</span>

@@ -158,78 +158,56 @@ def verify_otp():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if request.method == 'POST':
-
         email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
-        # =========================
-        # ADMIN LOGIN
-        # =========================
-
         if email == "admin@gmail.com" and password == "admin123":
-
             session.clear()
-
             session.permanent = True
             session['user_id'] = 0
             session['email'] = email
             session['is_admin'] = True
-
             return redirect(url_for('admin'))
 
-        # =========================
-        # NORMAL USER LOGIN
-        # =========================
-
         try:
-
             conn = get_db_connection()
             cursor = conn.cursor()
-
             cursor.execute("""
                 SELECT id, email, password, is_verified
                 FROM public.users
                 WHERE email = %s
             """, (email,))
-
             user = cursor.fetchone()
 
             if user:
-
                 u_id, u_email, u_hashed_password, u_verified = user
 
-                # Email verification check
                 if not u_verified:
-                    return render_template(
-                        'login.html',
-                        error="Please verify your email first!"
-                    )
+                    return render_template('login.html', error="Please verify your email first!")
 
-                # Password check
                 if check_password_hash(u_hashed_password, password):
-
                     session.clear()
-
                     session.permanent = True
                     session['user_id'] = u_id
                     session['email'] = u_email
                     session['is_admin'] = False
 
-                    return redirect(url_for("payment"))
+                    conn2 = get_db_connection()
+                    cursor2 = conn2.cursor()
+                    cursor2.execute("SELECT license_key FROM public.users WHERE id = %s", (u_id,))
+                    user_data = cursor2.fetchone()
+                    cursor2.close()
+                    conn2.close()
 
+                    if user_data and user_data[0]:
+                        return redirect(url_for("dashboard"))
+                    else:
+                        return redirect(url_for("payment"))
                 else:
-                    return render_template(
-                        'login.html',
-                        error="Invalid email or password."
-                    )
-
+                    return render_template('login.html', error="Invalid email or password.")
             else:
-                return render_template(
-                    'login.html',
-                    error="User not found."
-                )
+                return render_template('login.html', error="User not found.")
 
         except Exception as e:
             return f"Login Error: {str(e)}"
@@ -290,7 +268,7 @@ def admin():
     
     if not session.get('is_admin'):
         return render_template('admin_login.html', error=error)
-       
+    
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -301,11 +279,24 @@ def admin():
     """)
 
     all_users = cursor.fetchall()
-    # Dashboard counts
+    
     total_keys = len(all_users)
     active_keys = sum(1 for u in all_users if u[5] and u[5] > datetime.now())
     expired_keys = sum(1 for u in all_users if u[5] and u[5] <= datetime.now())
     total_users = total_keys
+    
+    revenue = 0
+    for u in all_users:
+        if u[3] == 'Basic':
+            revenue += 10
+        elif u[3] == 'Professional':
+            revenue += 25
+        elif u[3] == 'Enterprise':
+            revenue += 90
+        elif u[3] == 'Ultimate':
+            revenue += 250
+        else:
+            revenue += 10
 
     cursor.close()
     conn.close()
@@ -314,8 +305,8 @@ def admin():
         total_keys=total_keys,
         active_keys=active_keys,
         expired_keys=expired_keys,
-        total_users=total_users)
-
+        total_users=total_users,
+        revenue=revenue)
 @app.route('/delete_user/<int:user_id>')
 def delete_user(user_id):
     # Security check: sirf admin hi delete kar sakay
@@ -452,8 +443,17 @@ def reset_password():
 
 @app.route('/payment')
 def payment():
-    user_plan = session.get('selected_plan', 'Standard')
-    return render_template('payment.html', plan=user_plan)
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role FROM public.users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    plan = user_data[0] if user_data else 'Basic'
+    return render_template('payment.html', plan=plan)
 
 @app.route('/process_payment', methods=['POST'])
 def process_payment():

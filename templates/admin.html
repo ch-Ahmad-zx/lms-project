@@ -20,24 +20,26 @@
             background: #ffffff;
             padding: 40px;
         }
-        .card h2 {
-            font-weight: 700;
-            color: #1e3a5f;
-        }
-        .btn-danger {
-            border-radius: 8px;
-            font-weight: 500;
-        }
+        .card h2 { font-weight: 700; color: #1e3a5f; }
+        .btn-danger { border-radius: 8px; font-weight: 500; }
         .btn-primary {
             background: linear-gradient(90deg, #1e3a5f, #2d1b69);
             border: none;
             border-radius: 8px;
             font-weight: 600;
         }
-        .badge {
-            font-size: 0.85rem;
-            padding: 6px 12px;
-            border-radius: 20px;
+        .badge { font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; }
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #aaa;
+        }
+        .empty-state div { font-size: 50px; margin-bottom: 10px; }
+        footer {
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            margin-top: 30px;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -49,38 +51,41 @@
                 <a href="/logout" class="btn btn-outline-danger btn-sm">Logout Admin</a>
             </div>
             <hr>
-            <!-- Dashboard Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div style="background:linear-gradient(135deg,#1e3a5f,#2d1b69); border-radius:15px; padding:20px; text-align:center; color:white;">
-            <h3 style="font-size:2rem; font-weight:700;">{{ total_keys }}</h3>
-            <p style="color:#aaa; margin:0;">Total Keys</p>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div style="background:linear-gradient(135deg,#065f46,#047857); border-radius:15px; padding:20px; text-align:center; color:white;">
-            <h3 style="font-size:2rem; font-weight:700;">{{ active_keys }}</h3>
-            <p style="color:#aaa; margin:0;">Active Keys</p>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div style="background:linear-gradient(135deg,#7c2d12,#b45309); border-radius:15px; padding:20px; text-align:center; color:white;">
-            <h3 style="font-size:2rem; font-weight:700;">{{ expired_keys }}</h3>
-            <p style="color:#aaa; margin:0;">Expired Keys</p>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div style="background:linear-gradient(135deg,#4c1d95,#6d28d9); border-radius:15px; padding:20px; text-align:center; color:white;">
-            <h3 style="font-size:2rem; font-weight:700;">{{ total_users }}</h3>
-            <p style="color:#aaa; margin:0;">Total Users</p>
-        </div>
-    </div>
-</div>
 
-<!-- Search Bar -->
-<div class="mb-3">
-    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search by name, email, or plan..." class="form-control">
-</div>
+            <!-- Dashboard Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div style="background:linear-gradient(135deg,#1e3a5f,#2d1b69); border-radius:15px; padding:20px; text-align:center; color:white;">
+                        <h3 style="font-size:2rem; font-weight:700;">{{ total_keys }}</h3>
+                        <p style="color:#aaa; margin:0;">Total Users</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div style="background:linear-gradient(135deg,#065f46,#047857); border-radius:15px; padding:20px; text-align:center; color:white;">
+                        <h3 style="font-size:2rem; font-weight:700;">{{ active_keys }}</h3>
+                        <p style="color:#aaa; margin:0;">Active Licenses</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div style="background:linear-gradient(135deg,#7c2d12,#b45309); border-radius:15px; padding:20px; text-align:center; color:white;">
+                        <h3 style="font-size:2rem; font-weight:700;">{{ expired_keys }}</h3>
+                        <p style="color:#aaa; margin:0;">Expired Licenses</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div style="background:linear-gradient(135deg,#065f46,#047857); border-radius:15px; padding:20px; text-align:center; color:white;">
+                        <h3 style="font-size:2rem; font-weight:700;">${{ total_keys * 10 }}</h3>
+                        <p style="color:#aaa; margin:0;">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mb-3">
+                <input type="text" id="searchInput" onkeyup="searchTable()" 
+                    placeholder="Search by name, email, or plan..." class="form-control">
+            </div>
+
             <table class="table table-hover mt-4">
                 <thead class="table-dark">
                     <tr>
@@ -88,62 +93,78 @@
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>Plan</th>
-                        <th>Action</th>
                         <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% if not users %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div>😔</div>
+                                <h5>No users found</h5>
+                                <p>No users have registered yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
                     {% for user in users %}
-                   <tr>
-    <td>{{ user[0] }}</td>
-    <td>{{ user[1] }}</td>
-    <td>{{ user[2] }}</td>
-    <td><span class="badge bg-primary">{{ user[4] }}</span></td>
-    <td><span class="badge bg-success">Active</span></td>
-    <td>
-       <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
-<a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
-<a href="/enable_user/{{ user[0] }}" class="btn btn-success btn-sm ms-1">Enable</a>
-    </td>
-</tr>
+                    <tr>
+                        <td>{{ user[0] }}</td>
+                        <td>{{ user[1] }}</td>
+                        <td>{{ user[2] }}</td>
+                        <td><span class="badge bg-primary">{{ user[4] }}</span></td>
+                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
+                            <a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>
+                            <a href="/enable_user/{{ user[0] }}" class="btn btn-success btn-sm ms-1">Enable</a>
+                        </td>
+                    </tr>
                     {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
+
             <div class="mt-4">
                 <a href="/" class="btn btn-primary">Add New User</a>
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer>© 2026 License Management Portal. All rights reserved.</footer>
+
+    <!-- Delete Modal -->
     <div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#1e1e2e; border-radius:16px; padding:40px; width:400px; text-align:center; border:1px solid #ff4444; box-shadow:0 0 30px rgba(255,68,68,0.3);">
-        <div style="font-size:50px; margin-bottom:15px;">⚠️</div>
-        <h2 style="color:#fff; margin-bottom:10px;">Delete User?</h2>
-        <p style="color:#aaa; margin-bottom:30px;">This action cannot be undone. User will be permanently deleted.</p>
-        <div style="display:flex; gap:15px; justify-content:center;">
-            <button onclick="closeModal()" style="padding:12px 30px; border-radius:8px; border:1px solid #555; background:transparent; color:#fff; cursor:pointer; font-size:15px;">Cancel</button>
-            <a id="confirmDeleteBtn" href="#" style="padding:12px 30px; border-radius:8px; border:none; background:#ff4444; color:#fff; cursor:pointer; font-size:15px; text-decoration:none;">Delete</a>
+        <div style="background:#1e1e2e; border-radius:16px; padding:40px; width:400px; text-align:center; border:1px solid #ff4444; box-shadow:0 0 30px rgba(255,68,68,0.3);">
+            <div style="font-size:50px; margin-bottom:15px;">⚠️</div>
+            <h2 style="color:#fff; margin-bottom:10px;">Delete User?</h2>
+            <p style="color:#aaa; margin-bottom:30px;">This action cannot be undone. User will be permanently deleted.</p>
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button onclick="closeModal()" style="padding:12px 30px; border-radius:8px; border:1px solid #555; background:transparent; color:#fff; cursor:pointer; font-size:15px;">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" style="padding:12px 30px; border-radius:8px; border:none; background:#ff4444; color:#fff; cursor:pointer; font-size:15px; text-decoration:none;">Delete</a>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-function showDeleteModal(userId) {
-    document.getElementById('deleteModal').style.display = 'flex';
-    document.getElementById('confirmDeleteBtn').href = '/delete_user/' + userId;
-}
-function closeModal() {
-    document.getElementById('deleteModal').style.display = 'none';
-}
-function searchTable() {
-    let input = document.getElementById('searchInput').value.toLowerCase();
-    let rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-        let text = row.innerText.toLowerCase();
-        row.style.display = text.includes(input) ? '' : 'none';
-    });
-}
-</script>
-
-</body>
+    <script>
+        function showDeleteModal(userId) {
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('confirmDeleteBtn').href = '/delete_user/' + userId;
+        }
+        function closeModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+        function searchTable() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(input) ? '' : 'none';
+            });
+        }
+    </script>
 </body>
 </html>

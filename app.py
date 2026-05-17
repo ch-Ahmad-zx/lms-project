@@ -265,10 +265,10 @@ def admin():
         else:
             error = 'Wrong password!'
             session.pop('is_admin', None)
-    
+
     if not session.get('is_admin'):
         return render_template('admin_login.html', error=error)
-    
+
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -279,12 +279,13 @@ def admin():
     """)
 
     all_users = cursor.fetchall()
-    
+
     total_keys = len(all_users)
-    active_keys = sum(1 for u in all_users if u[5] and u[5] > datetime.now())
-    expired_keys = sum(1 for u in all_users if u[5] and u[5] <= datetime.now())
+    now = datetime.now()
+    active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
+    expired_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) <= now)
     total_users = total_keys
-    
+
     revenue = 0
     for u in all_users:
         if u[3] == 'Basic':

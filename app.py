@@ -70,7 +70,7 @@ def register():
 
         try:
             hashed_password = generate_password_hash(password)
-            generated_key = str(uuid.uuid4())
+            generated_key = None
             expiry_date_str = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
             otp = ''.join(random.choices(string.digits, k=6))
             otp_expiry = datetime.now() + timedelta(minutes=5)
@@ -457,54 +457,27 @@ def payment():
 
 @app.route('/process_payment', methods=['POST'])
 def process_payment():
-
     try:
-
-        user_email = request.form.get('email')
         user_id = session.get('user_id')
-
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            'SELECT license_key FROM users WHERE id = %s',
-            (user_id,)
-        )
+        # Generate new license key
+        new_key = str(uuid.uuid4())
+        
+        # Expiry date 30 days
+        expiry = datetime.now() + timedelta(days=30)
 
-        user_data = cursor.fetchone()
-
-        license_key = user_data[0] if user_data else 'N/A'
-
+        cursor.execute("UPDATE public.users SET license_key = %s, expiry_date = %s WHERE id = %s",
+                      (new_key, expiry, user_id))
+        conn.commit()
         cursor.close()
         conn.close()
 
-        # EMAIL SEND
-
-        msg = flask_mail.Message(
-            'License Key Confirmation',
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[user_email]
-        )
-
-        msg.body = f"""
-Congratulations!
-
-Your payment was successful.
-
-Your License Key:
-{license_key}
-
-Thank you for using LMS Portal.
-"""
-
-        #mail.send(msg)
+        return redirect(url_for('success', key=new_key))
 
     except Exception as e:
-
-        print(f"Error sending email: {e}")
-    return redirect(url_for('success', key='N/A'))
- 
-    return redirect(url_for('success', key=license_key))
+        return f"Error: {str(e)}"
 @app.route('/success')
 def success():
     key = request.args.get('key')

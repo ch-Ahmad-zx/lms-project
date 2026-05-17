@@ -93,6 +93,7 @@
                         <th>Full Name</th>
                         <th>Email</th>
                         <th>Plan</th>
+                        <th>Expiry</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
@@ -115,6 +116,7 @@
                         <td>{{ user[1] }}</td>
                         <td>{{ user[2] }}</td>
                         <td><span class="badge bg-primary">{{ user[4] }}</span></td>
+                        <td>{{ user[5] }}</td>
                         <td><span class="badge bg-success">Active</span></td>
                         <td>
                             <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>

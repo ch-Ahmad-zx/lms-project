@@ -117,7 +117,13 @@
                         <td>{{ user[2] }}</td>
                         <td><span class="badge bg-primary">{{ user[4] }}</span></td>
                         <td>{{ user[5] }}</td>
-                        <td><span class="badge bg-success">Active</span></td>
+                        <td>
+{% if user[5] and user[5] > datetime.now() %}
+    <span class="badge bg-success">Active</span>
+{% else %}
+    <span class="badge bg-danger">Expired</span>
+{% endif %}
+</td>
                         <td>
                             <button class="btn btn-danger btn-sm" onclick="showDeleteModal({{ user[0] }})">Delete</button>
                             <a href="/disable_user/{{ user[0] }}" class="btn btn-warning btn-sm ms-1">Disable</a>

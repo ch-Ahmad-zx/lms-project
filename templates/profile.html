@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.profile-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    max-width: 600px;
+    margin: 40px auto;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.info-label { color: #94a3b8; font-size: 14px; }
+.info-value { color: white; font-weight: 500; }
+.form-control {
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    color: white !important;
+    border-radius: 8px;
+}
+.form-control::placeholder { color: rgba(255,255,255,0.4) !important; }
+.form-label { color: #94a3b8; font-size: 13px; }
+</style>
+
+<div class="container py-5">
+    <div class="profile-card">
+        <h4 class="mb-4">👤 My Profile</h4>
+        
+        <!-- User Info -->
+        <div class="info-row">
+            <span class="info-label">Username</span>
+            <span class="info-value">{{ username }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ email }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Plan</span>
+            <span class="info-value"><span class="badge bg-primary">{{ plan }}</span></span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">License Expiry</span>
+            <span class="info-value" style="color:#facc15;">{{ expiry }}</span>
+        </div>
+
+        <!-- Password Change -->
+        <h5 class="mt-4 mb-3">🔒 Change Password</h5>
+        
+        {% if message %}
+            <div class="alert alert-success">✅ {{ message }}</div>
+        {% endif %}
+        {% if error %}
+            <div class="alert alert-danger">❌ {{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Current Password</label>
+                <input type="password" name="current_password" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">New Password</label>
+                <input type="password" name="new_password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Update Password</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/dashboard" style="color:#94a3b8; font-size:13px;">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -356,6 +356,45 @@ def enable_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, email, role, expiry_date FROM public.users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    
+    message = None
+    error = None
+    
+    if request.method == 'POST':
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        
+        cursor.execute("SELECT password FROM public.users WHERE id = %s", (user_id,))
+        pwd_data = cursor.fetchone()
+        
+        if check_password_hash(pwd_data[0], current_password):
+            hashed = generate_password_hash(new_password)
+            cursor.execute("UPDATE public.users SET password = %s WHERE id = %s", (hashed, user_id))
+            conn.commit()
+            message = 'Password changed successfully!'
+        else:
+            error = 'Current password is incorrect!'
+    
+    cursor.close()
+    conn.close()
+    
+    return render_template('profile.html', 
+        username=user_data[0],
+        email=user_data[1],
+        plan=user_data[2],
+        expiry=user_data[3],
+        message=message,
+        error=error)
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404

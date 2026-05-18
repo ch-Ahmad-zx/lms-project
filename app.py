@@ -47,6 +47,19 @@ def init_db():
             expiry_date TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS admins (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL
+        )
+    ''')
+
+    cursor.execute('''
+        INSERT INTO admins (email, name)
+        VALUES (%s, %s)
+        ON CONFLICT DO NOTHING
+    ''', ('ahmed926475@gmail.com', 'Ahmad'))
     conn.commit()
     conn.close()
 
@@ -162,14 +175,6 @@ def login():
         email = request.form.get('email').strip().lower()
         password = request.form.get('password').strip()
 
-        if email == "admin@gmail.com" and password == "admin123":
-            session.clear()
-            session.permanent = True
-            session['user_id'] = 0
-            session['email'] = email
-            session['is_admin'] = True
-            return redirect(url_for('admin'))
-
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
@@ -193,12 +198,8 @@ def login():
                     session['email'] = u_email
                     session['is_admin'] = False
 
-                    conn2 = get_db_connection()
-                    cursor2 = conn2.cursor()
-                    cursor2.execute("SELECT license_key FROM public.users WHERE id = %s", (u_id,))
-                    user_data = cursor2.fetchone()
-                    cursor2.close()
-                    conn2.close()
+                    cursor.execute("SELECT license_key FROM public.users WHERE id = %s", (u_id,))
+                    user_data = cursor.fetchone()
 
                     if user_data and user_data[0]:
                         return redirect(url_for("dashboard"))
@@ -229,116 +230,105 @@ def subscription():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     user_id = session['user_id']
-    conn = None
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute('SELECT license_key, expiry_date FROM public.users WHERE id = %s', (user_id,))
-        user_data = cursor.fetchone()
-
-        if user_data:
-            # Agar license key nahi hai toh subscription par bhejein
-            if not user_data[0]:
-                return redirect(url_for('subscription'))
-            
-            return render_template('dashboard.html', license_key=user_data[0], expiry_date=user_data[1])
-        else:
-            return "User data not found."
-            
-    except Exception as e:
-        return f"Dashboard Error: {str(e)}"
-    finally:
-        if conn:
-            cursor.close()
-            conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT license_key, expiry_date FROM public.users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if user_data:
+        expiry_warning = False
+        if user_data[1]:
+            days_left = (user_data[1].replace(tzinfo=None) - datetime.now()).days
+            if days_left <= 7:
+                expiry_warning = True
+        return render_template('dashboard.html', 
+            license_key=user_data[0], 
+            expiry_date=user_data[1],
+            expiry_warning=expiry_warning,
+            days_left=days_left)
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     error = None
     if request.method == 'POST':
-        password = request.form.get('password')
-        if password == 'ahmad123':
-            session['is_admin'] = True
-            return redirect(url_for('admin'))
-        else:
-            error = 'Wrong password!'
-            session.pop('is_admin', None)
+        email = request.form.get('email', '').strip().lower()
 
-    if not session.get('is_admin'):
-        return render_template('admin_login.html', error=error)
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT id, username, email, role, license_key, expiry_date
-        FROM users
-        ORDER BY id DESC
-    """)
-
-    all_users = cursor.fetchall()
-
-    total_keys = len(all_users)
-    now = datetime.now()
-    active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
-    expired_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) <= now)
-    total_users = total_keys
-
-    revenue = 0
-    for u in all_users:
-        if u[3] == 'Basic':
-            revenue += 10
-        elif u[3] == 'Professional':
-            revenue += 25
-        elif u[3] == 'Enterprise':
-            revenue += 90
-        elif u[3] == 'Ultimate':
-            revenue += 250
-        else:
-            revenue += 10
-
-    cursor.close()
-    conn.close()
-
-    return render_template('admin.html', users=all_users,
-        total_keys=total_keys,
-        active_keys=active_keys,
-        expired_keys=expired_keys,
-        total_users=total_users,
-        revenue=revenue,
-        now=now)
-@app.route('/delete_user/<int:user_id>')
-def delete_user(user_id):
-    # Security check: sirf admin hi delete kar sakay
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
-        conn.commit()
-    except Exception as e:
-        print(f"Delete Error: {e}")
-    finally:
+        # Check karo ke ye email admins table mein hai
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT email FROM admins WHERE email = %s", (email,))
+        admin_user = cursor.fetchone()
         cursor.close()
         conn.close()
-    
-    return redirect(url_for('admin'))
-@app.route('/disable_user/<int:user_id>')
-def disable_user(user_id):
-    if not session.get('is_admin'):
-        return redirect(url_for('login'))
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE public.users SET expiry_date = %s WHERE id = %s", 
-                   (datetime.now(), user_id))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return redirect(url_for('admin'))
+
+        if admin_user:
+            # OTP generate karo
+            otp = ''.join(random.choices(string.digits, k=6))
+            otp_expiry = datetime.now() + timedelta(minutes=5)
+            
+            # Session mein save karo
+            session['admin_otp'] = otp
+            session['admin_otp_expiry'] = otp_expiry.strftime('%Y-%m-%d %H:%M:%S')
+            session['admin_email'] = email
+
+            # Email bhejo
+            msg = Message('Admin OTP Code', 
+                         sender=app.config['MAIL_USERNAME'], 
+                         recipients=[email])
+            msg.body = f'Your Admin OTP is: {otp}\nValid for 5 minutes only.'
+            mail.send(msg)
+
+            return redirect(url_for('admin_verify_otp'))
+        else:
+            error = 'This email is not authorized as admin!'
+
+    return render_template('admin_login.html', error=error, otp_mode=False)
+
+
+@app.route('/admin-verify-otp', methods=['GET', 'POST'])
+def admin_verify_otp():
+    if 'admin_email' not in session:
+        return redirect(url_for('admin'))
+
+    error = None
+    if request.method == 'POST':
+        entered_otp = request.form.get('otp', '').strip()
+        saved_otp = session.get('admin_otp')
+        expiry_str = session.get('admin_otp_expiry')
+        expiry = datetime.strptime(expiry_str, '%Y-%m-%d %H:%M:%S')
+
+        if entered_otp == saved_otp and datetime.now() < expiry:
+            session.pop('admin_otp', None)
+            session.pop('admin_otp_expiry', None)
+            session['is_admin'] = True
+
+            # Admin dashboard data load karo
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, username, email, role, license_key, expiry_date
+                FROM users ORDER BY id DESC
+            """)
+            all_users = cursor.fetchall()
+            cursor.close()
+            conn.close()
+
+            now = datetime.now()
+            total_keys = len(all_users)
+            active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
+            expired_keys = total_keys - active_keys
+            revenue = sum({'Basic':10,'Professional':25,'Enterprise':90,'Ultimate':250}.get(u[3], 10) for u in all_users)
+
+            return render_template('admin.html', users=all_users,
+                total_keys=total_keys, active_keys=active_keys,
+                expired_keys=expired_keys, total_users=total_keys,
+                revenue=revenue, now=now)
+        else:
+            error = 'Invalid or expired OTP!'
+
+    return render_template('admin_login.html', error=error, otp_mode=True)
 @app.route('/enable_user/<int:user_id>')
 def enable_user(user_id):
     if not session.get('is_admin'):
@@ -356,6 +346,53 @@ def enable_user(user_id):
 def logout():
     session.clear()
     return redirect(url_for('login'))
+@app.route('/check_expiry')
+def check_expiry():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # 7 din mein expire hone wale users
+        cursor.execute("""
+            SELECT email, license_key, expiry_date 
+            FROM public.users 
+            WHERE expiry_date BETWEEN NOW() AND NOW() + INTERVAL '7 days'
+            AND license_key IS NOT NULL
+        """)
+        
+        expiring_users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        for user in expiring_users:
+            email = user[0]
+            license_key = user[1]
+            expiry_date = user[2]
+            
+            msg = Message(
+                'License Expiry Warning!',
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[email]
+            )
+            msg.body = f"""
+Dear User,
+
+Your license key is expiring soon!
+
+License Key: {license_key}
+Expiry Date: {expiry_date}
+
+Please renew your license to continue using our services.
+
+Thank you,
+LMS Portal Team
+"""
+            mail.send(msg)
+        
+        return f"Emails sent to {len(expiring_users)} users!"
+    
+    except Exception as e:
+        return f"Error: {str(e)}"
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     if 'user_id' not in session:

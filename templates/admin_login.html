@@ -2,18 +2,53 @@
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
-        <div class="card text-center">
-            <h2>🔒 Admin Access</h2>
-            <p class="text-muted">Enter admin password</p>
+        <div class="card text-center p-4">
+            
+            {% if not otp_mode %}
+            <!-- STEP 1: Email Daalo -->
+            <h4 class="mb-1">🔐 Admin Access</h4>
+            <p class="text-muted small">Enter your admin email to receive OTP</p>
+            
             {% if error %}
             <div class="alert alert-danger">{{ error }}</div>
             {% endif %}
+
             <form action="/admin" method="POST">
-                <div class="mb-3">
-                    <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                <div class="mb-3 text-start">
+                    <label class="form-label">Admin Email</label>
+                    <input type="email" name="email" class="form-control" 
+                           placeholder="admin@gmail.com" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Login</button>
+                <button type="submit" class="btn btn-primary w-100">
+                    Send OTP
+                </button>
             </form>
+
+            {% else %}
+            <!-- STEP 2: OTP Daalo -->
+            <h4 class="mb-1">📧 Verify OTP</h4>
+            <p class="text-muted small">Check your email and enter the 6-digit OTP</p>
+
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <form action="/admin-verify-otp" method="POST">
+                <div class="mb-3 text-start">
+                    <label class="form-label">Enter OTP</label>
+                    <input type="text" name="otp" class="form-control text-center" 
+                           placeholder="- - - - - -" maxlength="6" 
+                           style="font-size:1.5rem;letter-spacing:8px;" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    Verify & Login
+                </button>
+                <a href="/admin" class="d-block mt-3 small text-muted">
+                    ← Back / Resend OTP
+                </a>
+            </form>
+            {% endif %}
+
         </div>
     </div>
 </div>

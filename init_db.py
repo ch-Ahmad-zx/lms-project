@@ -15,6 +15,18 @@ def init_db():
             expiry_date TEXT
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS admins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL
+        )
+    ''')
+
+    cursor.execute('''
+        INSERT OR IGNORE INTO admins (email, name)
+        VALUES ('ahmed926475@gmail.com ', 'Ahmad')
+    ''')
     conn.commit()
     conn.close()
     print("Database FIXED with expiry_date column.")

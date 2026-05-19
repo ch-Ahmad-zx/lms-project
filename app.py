@@ -285,6 +285,24 @@ def admin():
             error = 'This email is not authorized as admin!'
 
     return render_template('admin_login.html', error=error, otp_mode=False)
+if session.get('is_admin'):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, role, license_key, expiry_date FROM users ORDER BY id DESC")
+    all_users = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    now = datetime.now()
+    total_keys = len(all_users)
+    active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
+    expired_keys = total_keys - active_keys
+    revenue = sum({'Basic':10,'Professional':25,'Enterprise':90,'Ultimate':250}.get(u[3], 10) for u in all_users)
+
+    return render_template('admin.html', users=all_users,
+        total_keys=total_keys, active_keys=active_keys,
+        expired_keys=expired_keys, total_users=total_keys,
+        revenue=revenue, now=now)
 
 
 @app.route('/admin-verify-otp', methods=['GET', 'POST'])
@@ -458,6 +476,34 @@ def add_admin():
         except Exception as e:
             print(f"Error: {e}")
     
+    return redirect(url_for('admin'))
+@app.route('/delete_user/<int:user_id>')
+def delete_user(user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute('DELETE FROM users WHERE id = %s', (user_id,))
+        conn.commit()
+    except Exception as e:
+        print(f"Delete Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/disable_user/<int:user_id>')
+def disable_user(user_id):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin'))
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE public.users SET expiry_date = %s WHERE id = %s", 
+                   (datetime.now(), user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
     return redirect(url_for('admin'))
 @app.route('/admin_logout')
 def admin_logout():

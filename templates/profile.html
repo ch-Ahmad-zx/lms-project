@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-{% block content %}
-<style>
 <style>
 .profile-card {
     background: rgba(255,255,255,0.05);
@@ -29,19 +27,17 @@
 .form-control::placeholder { color: rgba(255,255,255,0.4) !important; }
 .form-label { color: #94a3b8; font-size: 13px; }
 </style>
-</style>
-
-<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c47ff,#00d4aa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:32px;color:white;margin:0 auto 16px;">
-    {{ username[0].upper() }}
-</div>
-
-<div class="container py-5">
 
 <div class="container py-5">
     <div class="profile-card">
-        <h4 class="mb-4">👤 My Profile</h4>
-        
-        <!-- User Info -->
+
+        <!-- Avatar -->
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c47ff,#00d4aa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:32px;color:white;margin:0 auto 20px;">
+            {{ username[0].upper() }}
+        </div>
+
+        <h4 class="mb-4 text-center">👤 My Profile</h4>
+
         <div class="info-row">
             <span class="info-label">Username</span>
             <span class="info-value">{{ username }}</span>
@@ -59,9 +55,8 @@
             <span class="info-value" style="color:#facc15;">{{ expiry }}</span>
         </div>
 
-        <!-- Password Change -->
         <h5 class="mt-4 mb-3">🔒 Change Password</h5>
-        
+
         {% if message %}
             <div class="alert alert-success">✅ {{ message }}</div>
         {% endif %}

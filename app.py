@@ -198,8 +198,21 @@ def login():
                     session['email'] = u_email
                     session['is_admin'] = False
 
-                    cursor.execute("SELECT license_key FROM public.users WHERE id = %s", (u_id,))
+                    cursor.execute("SELECT license_key, expiry_date FROM public.users WHERE id = %s", (u_id,))
                     user_data = cursor.fetchone()
+
+                    # Expiry check
+                    try:
+                        if user_data and user_data[1]:
+                            days_left = (user_data[1].replace(tzinfo=None) - datetime.now()).days
+                            if days_left <= 7:
+                                msg = Message('License Expiring Soon!',
+                                    sender=app.config['MAIL_USERNAME'],
+                                    recipients=[u_email])
+                                msg.body = f'Your license is expiring in {days_left} days! Please renew it.'
+                                mail.send(msg)
+                    except:
+                        pass
 
                     if user_data and user_data[0]:
                         return redirect(url_for("dashboard"))

@@ -435,6 +435,30 @@ def profile():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+@app.route('/add-admin', methods=['POST'])
+def add_admin():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin'))
+    
+    email = request.form.get('email', '').strip().lower()
+    name = request.form.get('name', '').strip()
+    
+    if email and name:
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+                INSERT INTO admins (email, name)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            ''', (email, name))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    return redirect(url_for('admin'))
 @app.route('/admin_logout')
 def admin_logout():
     session.pop('is_admin', None)

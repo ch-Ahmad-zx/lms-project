@@ -283,27 +283,26 @@ def admin():
             return redirect(url_for('admin_verify_otp'))
         else:
             error = 'This email is not authorized as admin!'
+        if session.get('is_admin'):
+         conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, username, email, role, license_key, expiry_date FROM users ORDER BY id DESC")
+        all_users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        now = datetime.now()
+        total_keys = len(all_users)
+        active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
+        expired_keys = total_keys - active_keys
+        revenue = sum({'Basic':10,'Professional':25,'Enterprise':90,'Ultimate':250}.get(u[3], 10) for u in all_users)
+        return render_template('admin.html', users=all_users,
+            total_keys=total_keys, active_keys=active_keys,
+            expired_keys=expired_keys, total_users=total_keys,
+            revenue=revenue, now=now)
+
+            
 
     return render_template('admin_login.html', error=error, otp_mode=False)
-if session.get('is_admin'):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, username, email, role, license_key, expiry_date FROM users ORDER BY id DESC")
-    all_users = cursor.fetchall()
-    cursor.close()
-    conn.close()
-
-    now = datetime.now()
-    total_keys = len(all_users)
-    active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
-    expired_keys = total_keys - active_keys
-    revenue = sum({'Basic':10,'Professional':25,'Enterprise':90,'Ultimate':250}.get(u[3], 10) for u in all_users)
-
-    return render_template('admin.html', users=all_users,
-        total_keys=total_keys, active_keys=active_keys,
-        expired_keys=expired_keys, total_users=total_keys,
-        revenue=revenue, now=now)
-
 
 @app.route('/admin-verify-otp', methods=['GET', 'POST'])
 def admin_verify_otp():

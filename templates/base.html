@@ -87,17 +87,17 @@
     <span class="navbar-toggler-icon"></span>
 </button>
 <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/">Register</a></li>
-{% if session.get('user_id') %}
-<li class="nav-item"><a class="nav-link" href="/profile">🧑 Profile</a></li>
-<li class="nav-item"><a class="nav-link" href="/resources">🔒 Premium Access</a></li>
-<li class="nav-item"><a class="nav-link fw-bold text-warning" href="/logout">Logout</a></li>
-{% else %}
-<li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
-{% endif %}
-<li class="nav-item"><a class="nav-link" href="/admin">Admin Panel</a></li>
-                </ul>
+              <ul class="navbar-nav ms-auto">
+    <li class="nav-item"><a class="nav-link" href="/">Register</a></li>
+    {% if session.get('user_id') %}
+    <li class="nav-item"><a class="nav-link" href="/profile">🧑 Profile</a></li>
+    <li class="nav-item"><a class="nav-link" href="/resources">🔒 Premium Access</a></li>
+    <li class="nav-item"><a class="nav-link fw-bold text-warning" href="/logout">Logout</a></li>
+    {% else %}
+    <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+    {% endif %}
+    <li class="nav-item"><a class="nav-link" href="/admin">Admin Panel</a></li>
+</ul>
             </div>
         </div>
     </nav>

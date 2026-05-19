@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
+{% block content %}
+<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c47ff,#00d4aa);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:32px;color:white;margin:0 auto 16px;">
+    {{ username[0].upper() }}
+</div>
+<style>
 <style>
 .profile-card {
     background: rgba(255,255,255,0.05);

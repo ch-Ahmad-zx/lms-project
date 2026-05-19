@@ -490,7 +490,23 @@ def delete_user(user_id):
     finally:
         cursor.close()
         conn.close()
-    return redirect(url_for('admin'))
+    
+    # Admin session rehne do, seedha dashboard reload karo
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, email, role, license_key, expiry_date FROM users ORDER BY id DESC")
+    all_users = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    now = datetime.now()
+    total_keys = len(all_users)
+    active_keys = sum(1 for u in all_users if u[5] and u[5].replace(tzinfo=None) > now)
+    expired_keys = total_keys - active_keys
+    revenue = sum({'Basic':10,'Professional':25,'Enterprise':90,'Ultimate':250}.get(u[3], 10) for u in all_users)
+    return render_template('admin.html', users=all_users,
+        total_keys=total_keys, active_keys=active_keys,
+        expired_keys=expired_keys, total_users=total_keys,
+        revenue=revenue, now=now)
 
 @app.route('/disable_user/<int:user_id>')
 def disable_user(user_id):
